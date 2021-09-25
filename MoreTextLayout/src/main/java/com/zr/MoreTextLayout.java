@@ -16,13 +16,11 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.AppCompatTextView;
-import androidx.core.content.ContextCompat;
 
 public class MoreTextLayout extends FrameLayout {
     private String openTips = "展开";
@@ -30,7 +28,9 @@ public class MoreTextLayout extends FrameLayout {
     private String closeTips = "收缩";
     private ColorStateList closeTipsColor;
     private float tipsSize = -1;
-    private String ellipsize="";
+    private float tipsXOffset=0;
+    private float tipsYOffset=0;
+    private String ellipsize = "";
     private float tipsSpace = 0;
     private int maxLines = -1;
     private CharSequence text;
@@ -61,7 +61,7 @@ public class MoreTextLayout extends FrameLayout {
 
     private CharSequence fullText = "";
     private AppCompatTextView tipsTextView;
-    private boolean isOpen=true;
+    private boolean isOpen = true;
 
     public MoreTextLayout(@NonNull Context context) {
         super(context);
@@ -97,7 +97,9 @@ public class MoreTextLayout extends FrameLayout {
             closeTips = "收缩";
         }
         closeTipsColor = typedArray.getColorStateList(R.styleable.MoreTextLayout_closeTipsColor);
-        tipsSize = typedArray.getDimension(R.styleable.MoreTextLayout_tipsSize, -1);
+        tipsSize = typedArray.getDimensionPixelSize(R.styleable.MoreTextLayout_tipsSize, -1);
+        tipsXOffset = typedArray.getDimensionPixelOffset(R.styleable.MoreTextLayout_tipsXOffset, 0);
+        tipsYOffset = typedArray.getDimensionPixelOffset(R.styleable.MoreTextLayout_tipsYOffset, 0);
         ellipsize = typedArray.getString(R.styleable.MoreTextLayout_ellipsis);
         if (TextUtils.isEmpty(ellipsize)) {
             ellipsize = "";
@@ -112,7 +114,10 @@ public class MoreTextLayout extends FrameLayout {
         textColor = typedArray.getColorStateList(R.styleable.MoreTextLayout_android_textColor);
         textColorHighlight = typedArray.getColor(R.styleable.MoreTextLayout_android_textColorHighlight, 0x6633B5E5);
         textColorHint = typedArray.getColorStateList(R.styleable.MoreTextLayout_android_textColorHint);
-        textSize = typedArray.getDimensionPixelOffset(R.styleable.MoreTextLayout_android_textSize, -1);
+        textSize = typedArray.getDimensionPixelSize(R.styleable.MoreTextLayout_android_textSize, -1);
+        if (tipsSize == -1) {
+            tipsSize = textSize;
+        }
         textScaleX = typedArray.getFloat(R.styleable.MoreTextLayout_android_textScaleX, 1f);
         typeface = typedArray.getInt(R.styleable.MoreTextLayout_android_typeface, -1);
         textStyle = typedArray.getInt(R.styleable.MoreTextLayout_android_textStyle, -1);
@@ -147,7 +152,7 @@ public class MoreTextLayout extends FrameLayout {
     @SuppressLint("DrawAllocation")
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        isOpen=true;
+        isOpen = true;
         if (maxLines == 0 || TextUtils.isEmpty(text)) {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             return;
@@ -155,7 +160,7 @@ public class MoreTextLayout extends FrameLayout {
         if (textView == null || textView.getParent() == null) {
             textView = new AppCompatTextView(getContext());
             if (textSize != -1) {
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_PX,textSize);
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
             }
             textView.setTextScaleX(textScaleX);
 //            textView.setId(R.id.moreTextId);
@@ -214,34 +219,52 @@ public class MoreTextLayout extends FrameLayout {
         } else if (textView.getId() == View.NO_ID) {
             Layout layout = textView.getLayout();
             if (layout.getLineCount() > maxLines) {
-                textView.setId(R.id.moreTextId);
-                int lineLeft = layout.getLineStart(maxLines - 1);
-                int lineRight = layout.getLineEnd(maxLines - 1);
+//                textView.setId(R.id.moreTextId);
+                int lineStart = layout.getLineStart(maxLines - 1);
+                int lineEnd = layout.getLineEnd(maxLines - 1);
+                float lineRight = layout.getLineRight(maxLines - 1);
+                float lineTop = layout.getLineTop(maxLines - 1);
+                float lineBottom = layout.getLineBottom(maxLines - 1);
 
-                CharSequence charSequence = text.subSequence(lineLeft, lineRight);
+
+                CharSequence charSequence = text.subSequence(lineStart, lineEnd);
 
                 Rect rect = new Rect();
                 TextPaint paint = textView.getPaint();
 
-                int tempCount=1;
+                int tempCount = 1;
 
                 String tempLineText = ellipsize + openTips + charSequence;
 
-                boolean flag=true;
-                while (flag){
-                    paint.getTextBounds(tempLineText,0,tempLineText.length()-tempCount,rect);
-                    if(rect.width()+tipsSpace>getMeasuredWidth()){
-                        tempCount+=1;
-                    }else{
-                        flag=false;
+                boolean flag = true;
+                while (flag) {
+                    paint.getTextBounds(tempLineText, 0, tempLineText.length() - tempCount, rect);
+                    if (rect.width() + tipsSpace > getMeasuredWidth()) {
+                        tempCount += 1;
+                    } else {
+                        flag = false;
                     }
                 }
-                textView.setText(text.subSequence(0,lineRight-tempCount)+ellipsize+openTips);
+                textView.setText(text.subSequence(0, lineEnd - tempCount) + ellipsize);
 
-                tipsTextView = new AppCompatTextView(getContext());
-                tipsTextView.setText(openTips);
+                if (tipsTextView == null || tipsTextView.getParent() == null) {
+                    tipsTextView = new AppCompatTextView(getContext());
+                    tipsTextView.setText(openTips);
+                    if (openTipsColor != null) {
+                        tipsTextView.setTextColor(openTipsColor);
+                    }
+                    if (tipsSize != -1) {
+                        tipsTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tipsSize);
+                    }
 
-                isOpen=false;
+                    tipsTextView.getPaint().getTextBounds(openTips, 0, openTips.length(), rect);
+                    tipsTextView.setX(tipsXOffset+lineRight - rect.width() + tipsSpace);
+                    tipsTextView.setY(tipsYOffset+lineBottom + (tipsTextView.getPaint().getFontMetrics().top - tipsTextView.getPaint().getFontMetrics().bottom));
+
+                    addView(tipsTextView);
+                }
+
+                isOpen = false;
             }
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
