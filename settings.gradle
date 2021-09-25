@@ -1,0 +1,3 @@
+rootProject.name='MoreTextProject'
+include ':app'
+include ':MoreTextLayout'

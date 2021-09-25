@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Hello World!" />
+
+    <com.zr.MoreTextLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="3"
+        app:ellipsis="ccccddd...g"
+        android:text="与主题关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。与主题关系不大的段落可以省略1234567890获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。"
+        >
+    </com.zr.MoreTextLayout>
+
+    <TextView
+        android:layout_marginTop="40dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="android与主题关系不大的段落可以省略1234567890获取指定字符的行号注意：计算坐标时我们仍然会用到Layout提供的一些方法。android与主题关系不大的段落可以省略1234567890获取指定字符的行号注意：计算坐标时我们仍然会用到Layout提供的一些方法。"
+        />
+</LinearLayout>

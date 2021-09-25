@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MoreTextLayout">
+        <attr name="openTips" format="string" />
+        <attr name="openTipsColor" format="color" />
+
+        <attr name="closeTips" format="string" />
+        <attr name="closeTipsColor" format="color" />
+
+        <attr name="tipsSize" format="dimension" />
+
+        <attr name="ellipsis" format="string" />
+        <attr name="tipsSpace" format="dimension" />
+        <attr name="android:maxLines" format="integer" />
+
+        <attr name="android:text" format="string" localization="suggested" />
+        <attr name="android:hint" format="string" />
+        <attr name="android:textColor" />
+        <attr name="android:textColorHighlight" />
+        <attr name="android:textColorHint" />
+        <attr name="android:textAppearance" />
+        <attr name="android:textSize" />
+        <attr name="android:textScaleX" format="float" />
+        <attr name="android:typeface" />
+        <attr name="android:textStyle" />
+<!--        <attr name="android:textFontWeight" format="integer" />-->
+        <attr name="android:fontFamily" />
+        <attr name="android:textColorLink" />
+        <attr name="android:textAllCaps" format="boolean" />
+        <attr name="android:shadowColor" format="color" />
+        <attr name="android:shadowDx" format="float" />
+        <attr name="android:shadowDy" format="float" />
+        <attr name="android:shadowRadius" format="float" />
+       <!-- <attr name="android:elegantTextHeight" format="boolean" />
+        <attr name="android:fallbackLineSpacing" format="boolean" />
+        <attr name="android:letterSpacing" format="float" />
+        <attr name="android:fontFeatureSettings" format="string" />
+        <attr name="android:fontVariationSettings" format="string" />-->
+
+
+    </declare-styleable>
+
+    <attr name="textColor" format="reference|color" />
+    <attr name="textSize" format="dimension" />
+    <attr name="textStyle">
+        <flag name="normal" value="0" />
+        <flag name="bold" value="1" />
+        <flag name="italic" value="2" />
+    </attr>
+    <attr name="textFontWeight" format="integer" />
+    <attr name="typeface">
+        <enum name="normal" value="0" />
+        <enum name="sans" value="1" />
+        <enum name="serif" value="2" />
+        <enum name="monospace" value="3" />
+    </attr>
+    <attr name="textColorHighlight" format="reference|color" />
+
+    <attr name="textColorHint" format="reference|color" />
+    <attr name="textColorLink" format="reference|color" />
+</resources>
