@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:maxLines="3"
         app:ellipsis="..."
-        app:tipsSpace="5dp"
+        app:tipsSpace="0dp"
         app:tipsSize="11sp"
         android:textSize="19sp"
         android:text="与主题关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。与主题关系不大的段落可以省略1234567890获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。"

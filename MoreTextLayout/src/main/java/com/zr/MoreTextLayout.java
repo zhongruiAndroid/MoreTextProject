@@ -13,6 +13,7 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -28,8 +29,8 @@ public class MoreTextLayout extends FrameLayout {
     private String closeTips = "收缩";
     private ColorStateList closeTipsColor;
     private float tipsSize = -1;
-    private float tipsXOffset=0;
-    private float tipsYOffset=0;
+    private float tipsXOffset = 0;
+    private float tipsYOffset = 0;
     private String ellipsize = "";
     private float tipsSpace = 0;
     private int maxLines = -1;
@@ -61,7 +62,19 @@ public class MoreTextLayout extends FrameLayout {
 
     private CharSequence fullText = "";
     private AppCompatTextView tipsTextView;
-    private boolean isOpen = true;
+    private boolean expand = false;
+
+
+    private OnTouchListener tipsTouchListener;
+    private OnTipsClickListener onTipsClickListener;
+
+    public void setTipsTouchListener(OnTouchListener tipsTouchListener) {
+        this.tipsTouchListener = tipsTouchListener;
+    }
+
+    public void setOnTipsClickListener(OnTipsClickListener onTipsClickListener) {
+        this.onTipsClickListener = onTipsClickListener;
+    }
 
     public MoreTextLayout(@NonNull Context context) {
         super(context);
@@ -97,6 +110,9 @@ public class MoreTextLayout extends FrameLayout {
             closeTips = "收缩";
         }
         closeTipsColor = typedArray.getColorStateList(R.styleable.MoreTextLayout_closeTipsColor);
+        if (closeTipsColor == null) {
+            closeTipsColor = openTipsColor;
+        }
         tipsSize = typedArray.getDimensionPixelSize(R.styleable.MoreTextLayout_tipsSize, -1);
         tipsXOffset = typedArray.getDimensionPixelOffset(R.styleable.MoreTextLayout_tipsXOffset, 0);
         tipsYOffset = typedArray.getDimensionPixelOffset(R.styleable.MoreTextLayout_tipsYOffset, 0);
@@ -149,11 +165,10 @@ public class MoreTextLayout extends FrameLayout {
     private int serif = 2;
     private int monospace = 3;
 
-    @SuppressLint("DrawAllocation")
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        isOpen = true;
         if (maxLines == 0 || TextUtils.isEmpty(text)) {
+            expand = true;
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             return;
         }
@@ -163,9 +178,7 @@ public class MoreTextLayout extends FrameLayout {
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
             }
             textView.setTextScaleX(textScaleX);
-//            textView.setId(R.id.moreTextId);
             textView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-//            textView.setMaxLines(2);
             if (!TextUtils.isEmpty(text)) {
                 textView.setText(text);
             }
@@ -176,7 +189,7 @@ public class MoreTextLayout extends FrameLayout {
                 textView.setTextColor(textColor);
             }
             textView.setHighlightColor(textColorHighlight);
-            if (textColorHint == null) {
+            if (textColorHint != null) {
                 textView.setHintTextColor(textColorHint);
             }
 
@@ -211,80 +224,156 @@ public class MoreTextLayout extends FrameLayout {
             if (shadowColor != 0) {
                 textView.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
             }
-//            int makeMeasureSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.AT_MOST);
-//            textView.measure(getMeasuredWidth(), makeMeasureSpec);
-
             addView(textView);
-
-        } else if (textView.getId() == View.NO_ID) {
-            Layout layout = textView.getLayout();
-            if (layout.getLineCount() > maxLines) {
-//                textView.setId(R.id.moreTextId);
-                int lineStart = layout.getLineStart(maxLines - 1);
-                int lineEnd = layout.getLineEnd(maxLines - 1);
-                float lineRight = layout.getLineRight(maxLines - 1);
-                float lineTop = layout.getLineTop(maxLines - 1);
-                float lineBottom = layout.getLineBottom(maxLines - 1);
-
-
-                CharSequence charSequence = text.subSequence(lineStart, lineEnd);
-
-                Rect rect = new Rect();
-                TextPaint paint = textView.getPaint();
-
-                int tempCount = 1;
-
-                String tempLineText = ellipsize + openTips + charSequence;
-
-                boolean flag = true;
-                while (flag) {
-                    paint.getTextBounds(tempLineText, 0, tempLineText.length() - tempCount, rect);
-                    if (rect.width() + tipsSpace > getMeasuredWidth()) {
-                        tempCount += 1;
-                    } else {
-                        flag = false;
-                    }
-                }
-                textView.setText(text.subSequence(0, lineEnd - tempCount) + ellipsize);
-
-                if (tipsTextView == null || tipsTextView.getParent() == null) {
-                    tipsTextView = new AppCompatTextView(getContext());
-                    tipsTextView.setText(openTips);
-                    if (openTipsColor != null) {
-                        tipsTextView.setTextColor(openTipsColor);
-                    }
-                    if (tipsSize != -1) {
-                        tipsTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tipsSize);
-                    }
-
-                    tipsTextView.getPaint().getTextBounds(openTips, 0, openTips.length(), rect);
-                    tipsTextView.setX(tipsXOffset+lineRight - rect.width() + tipsSpace);
-                    tipsTextView.setY(tipsYOffset+lineBottom + (tipsTextView.getPaint().getFontMetrics().top - tipsTextView.getPaint().getFontMetrics().bottom));
-
-                    addView(tipsTextView);
-                }
-
-                isOpen = false;
+        } else {
+            if (expand) {
+                expand();
+            } else {
+                noExpand();
             }
+
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
-    @Override
-    protected void onFinishInflate() {
-        Log.i("=====", "=====onFinishInflate");
-        int childCount = getChildCount();
-        if (childCount > 0) {
-            View childAt = getChildAt(0);
-            if (childAt instanceof AppCompatTextView) {
-                textView = (AppCompatTextView) childAt;
-            }
+    private void expand() {
+        if (textView == null || textView.getParent() == null) {
+            return;
         }
-        super.onFinishInflate();
+        Layout layout = textView.getLayout();
+        int lineCount = layout.getLineCount();
+        //收缩时，如果显示行数大于设置的最大行数
+        int lineStart = layout.getLineStart(lineCount - 1);
+        int lineEnd = layout.getLineEnd(lineCount - 1);
+        float lineRight = layout.getLineRight(lineCount - 1);
+        float lineTop = layout.getLineTop(lineCount - 1);
+        float lineBottom = layout.getLineBottom(lineCount - 1);
+
+        CharSequence charSequence = text.subSequence(lineStart, lineEnd);
+
+        Rect rect = new Rect();
+        TextPaint paint = textView.getPaint();
+
+        int tempCount = 1;
+
+        final String tempLineText = openTips + charSequence;
+        paint.getTextBounds(tempLineText, 0, tempLineText.length() - tempCount, rect);
+        /*如果最后一行的宽度+tips大于父view宽度*/
+        if (rect.width() + tipsSpace > getMeasuredWidth()) {
+            //tips显示在下一行
+            /*最后一个高度*/
+            lineBottom = lineBottom + (lineBottom - lineTop);
+
+            textView.setText(text);
+            // TODO: 2021/10/12
+            //显示在左边
+            setTipsView(0, lineBottom);
+
+        } else {
+            //tips显示在最后一行
+
+            textView.setText(text);
+            // TODO: 2021/10/12
+            //显示在 右边
+            setTipsView(lineRight, lineBottom);
+        }
+
+
     }
 
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
+    private void noExpand() {
+        if (textView == null || textView.getParent() == null) {
+            return;
+        }
+        Layout layout = textView.getLayout();
+        //收缩时，如果显示行数大于设置的最大行数
+        if (layout.getLineCount() > maxLines) {
+            int lineStart = layout.getLineStart(maxLines - 1);
+            int lineEnd = layout.getLineEnd(maxLines - 1);
+            float lineRight = layout.getLineRight(maxLines - 1);
+            float lineTop = layout.getLineTop(maxLines - 1);
+            float lineBottom = layout.getLineBottom(maxLines - 1);
+
+
+            CharSequence charSequence = text.subSequence(lineStart, lineEnd);
+
+            Rect rect = new Rect();
+            TextPaint paint = textView.getPaint();
+
+            int tempCount = 1;
+
+            final String tempLineText = ellipsize + openTips + charSequence;
+
+            boolean flag = true;
+            while (flag) {
+                paint.getTextBounds(tempLineText, 0, tempLineText.length() - tempCount, rect);
+                /*最后一行文字+。。。+提示 长度需要小于父view宽度*/
+                if (rect.width() + tipsSpace > getMeasuredWidth()) {
+                    tempCount += 1;
+                } else {
+                    flag = false;
+                }
+            }
+            textView.setText(text.subSequence(0, lineEnd - tempCount) + ellipsize);
+
+            setTipsView(lineRight-tempCount*textSize, lineBottom);
+        } else {
+            textView.setText(text);
+            removeView(tipsTextView);
+        }
+    }
+
+    private Rect offsetRect = new Rect();
+
+    private void setTipsView(float lineRight, float lineBottom) {
+        if (tipsTextView == null) {
+            tipsTextView = new AppCompatTextView(getContext());
+        }
+
+        tipsTextView.setText(expand ? closeTips : openTips);
+        if (openTipsColor != null) {
+            tipsTextView.setTextColor(openTipsColor);
+        }
+        if (tipsSize != -1) {
+            tipsTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tipsSize);
+        }
+        if (offsetRect != null) {
+            offsetRect.setEmpty();
+        }
+        tipsTextView.getPaint().getTextBounds(openTips, 0, openTips.length(), offsetRect);
+
+        float offsetX = tipsXOffset + lineRight /*- offsetRect.width()*/ + tipsSpace;
+        float offsetY = tipsYOffset + lineBottom + (tipsTextView.getPaint().getFontMetrics().top - tipsTextView.getPaint().getFontMetrics().bottom);
+
+        /*控制tips  x轴偏移*/
+        tipsTextView.setX(offsetX);
+        /*控制tips  y轴偏移*/
+        tipsTextView.setY(offsetY);
+        tipsTextView.setOnTouchListener(tipsTouchListener);
+        tipsTextView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                expand = !expand;
+                tipsTextView.setText(expand ? closeTips : openTips);
+                if (expand) {
+                    textView.setText(text);
+                    if (closeTipsColor != null) {
+                        tipsTextView.setTextColor(closeTipsColor);
+                    }
+                } else {
+                    if (openTipsColor != null) {
+                        tipsTextView.setTextColor(openTipsColor);
+                    }
+                }
+                /*重新测量时会自动设置展开或者收缩，所以这里不需要手动调用expand或者noExpand方法*/
+                requestLayout();
+                if (onTipsClickListener != null) {
+                    onTipsClickListener.onClick(tipsTextView, expand);
+                }
+            }
+        });
+        if (tipsTextView.getParent() == null) {
+            addView(tipsTextView);
+        }
     }
 }
