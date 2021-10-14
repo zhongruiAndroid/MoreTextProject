@@ -18,18 +18,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:maxLines="3"
-        app:ellipsis="..."
-        app:tipsSpace="0dp"
-        app:tipsSize="11sp"
+        android:text="与我们仍与主题关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。与展展关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。"
         android:textSize="19sp"
-        android:text="与主题关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。与主题关系不大的段落可以省略1234567890获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。"
-        >
-    </com.zr.MoreTextLayout>
+        app:closeTips="收缩"
+        app:closeTipsColor="#F40781"
+        app:ellipsis="..."
+        app:openTipsColor="#0AA5F8"
+        app:tipsLastGravity="right"
+        app:tipsSize="19sp"
+        app:tipsSpace="2dp" />
 
     <TextView
-        android:layout_marginTop="40dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="android与主题关系不大的段落可以省略1234567890获取指定字符的行号注意：计算坐标时我们仍然会用到Layout提供的一些方法。android与主题关系不大的段落可以省略1234567890获取指定字符的行号注意：计算坐标时我们仍然会用到Layout提供的一些方法。"
-        />
+        android:layout_marginTop="40dp"
+        android:text="与与时与时与时与我们仍与主题关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。与主题关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。"
+        android:textSize="19sp" />
 </LinearLayout>

@@ -13,6 +13,12 @@
         <attr name="tipsSpace" format="dimension" />
         <attr name="tipsXOffset" format="dimension" />
         <attr name="tipsYOffset" format="dimension" />
+        <attr name="tipsLastYOffset" format="dimension" />
+        <attr name="tipsLastXOffset" format="dimension" />
+        <attr name="tipsLastGravity" format="enum">
+            <enum name="left" value="0">left</enum>
+            <enum name="right" value="1">left</enum>
+        </attr>
 
         <attr name="android:maxLines" format="integer" />
 
@@ -26,7 +32,7 @@
         <attr name="android:textScaleX" format="float" />
         <attr name="android:typeface" />
         <attr name="android:textStyle" />
-<!--        <attr name="android:textFontWeight" format="integer" />-->
+        <!--        <attr name="android:textFontWeight" format="integer" />-->
         <attr name="android:fontFamily" />
         <attr name="android:textColorLink" />
         <attr name="android:textAllCaps" format="boolean" />
@@ -34,11 +40,11 @@
         <attr name="android:shadowDx" format="float" />
         <attr name="android:shadowDy" format="float" />
         <attr name="android:shadowRadius" format="float" />
-       <!-- <attr name="android:elegantTextHeight" format="boolean" />
-        <attr name="android:fallbackLineSpacing" format="boolean" />
-        <attr name="android:letterSpacing" format="float" />
-        <attr name="android:fontFeatureSettings" format="string" />
-        <attr name="android:fontVariationSettings" format="string" />-->
+        <!-- <attr name="android:elegantTextHeight" format="boolean" />
+         <attr name="android:fallbackLineSpacing" format="boolean" />
+         <attr name="android:letterSpacing" format="float" />
+         <attr name="android:fontFeatureSettings" format="string" />
+         <attr name="android:fontVariationSettings" format="string" />-->
 
 
     </declare-styleable>
