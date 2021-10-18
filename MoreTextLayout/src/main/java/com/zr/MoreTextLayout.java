@@ -166,7 +166,6 @@ public class MoreTextLayout extends FrameLayout {
         typedArray.recycle();
 
 
-
     }
 
     private int normal = 0;
@@ -174,16 +173,8 @@ public class MoreTextLayout extends FrameLayout {
     private int serif = 2;
     private int monospace = 3;
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        if (textView != null) {
-//            setMeasuredDimension(getMeasuredWidth(), (int) (getMeasuredHeight()+textSize+textView.getLineSpacingExtra()*2));
-        }
-        Log.i("=====", "====onMeasure=");
-    }
 
-    private void expand() {
+    public void expand() {
         if (textView == null || textView.getParent() == null) {
             return;
         }
@@ -203,7 +194,7 @@ public class MoreTextLayout extends FrameLayout {
 
         int tempCount = 1;
 
-        String tempLineText = openTips.toString() + charSequence;
+        String tempLineText = closeTips.toString() + charSequence;
         paint.getTextBounds(tempLineText, 0, tempLineText.length() - tempCount, rect);
         /*如果最后一行的宽度+tips大于父view宽度*/
         if (rect.width() + tipsSpace > getMeasuredWidth()) {
@@ -222,7 +213,7 @@ public class MoreTextLayout extends FrameLayout {
         }
     }
 
-    private void noExpand() {
+    public void collapse() {
         if (textView == null || textView.getParent() == null) {
             return;
         }
@@ -245,10 +236,11 @@ public class MoreTextLayout extends FrameLayout {
 
             final String tempLineText = ellipsize + charSequence;
             boolean flag = true;
+            float tipsLength = openTips.length() * tipsSize;
             while (flag) {
                 paint.getTextBounds(tempLineText, 0, tempLineText.length() - tempCount, rect);
                 /*最后一行文字+。。。+提示 长度需要小于父view宽度*/
-                if (rect.width() + tipsSpace + openTips.length() * tipsSize > getMeasuredWidth()) {
+                if (rect.width() + tipsSpace + tipsLength > getMeasuredWidth()) {
                     tempCount += 1;
                 } else {
                     flag = false;
@@ -257,10 +249,8 @@ public class MoreTextLayout extends FrameLayout {
             String showText = text.subSequence(0, lineEnd - tempCount) + ellipsize;
             textView.setText(showText);
 
-//            paint.getTextBounds(showText, 0, showText.length() , rect);
 
             setTipsView(rect.width() + tipsSpace, lineTop, lineBottom);
-//            setTipsView(/*lineRight-tempCount*textSize*/rect.width()-openTips.length()*tipsSize, lineBottom);
         } else {
             textView.setText(text);
             removeView(tipsTextView);
@@ -281,7 +271,7 @@ public class MoreTextLayout extends FrameLayout {
         tipsTextView.setText(expand ? closeTips : openTips);
         if (openTipsColor != null) {
             /*展开状态，显示的是closetips*/
-            tipsTextView.setTextColor(expand?closeTipsColor:openTipsColor);
+            tipsTextView.setTextColor(expand ? closeTipsColor : openTipsColor);
         }
         if (tipsSize != -1) {
             tipsTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tipsSize);
@@ -298,7 +288,7 @@ public class MoreTextLayout extends FrameLayout {
             offsetX = tipsLastXOffset + lineRight;
             offsetY = lineBottom + tipsLastYOffset;
         } else {
-            offsetX = lineRight + tipsSpace+tipsXOffset;
+            offsetX = lineRight + tipsSpace + tipsXOffset;
             offsetY = tipsYOffset + lineBottom + (tipsTextView.getPaint().getFontMetrics().top - tipsTextView.getPaint().getFontMetrics().bottom) + 1;
         }
         MarginLayoutParams layoutParams = (MarginLayoutParams) tipsTextView.getLayoutParams();
@@ -306,9 +296,9 @@ public class MoreTextLayout extends FrameLayout {
             layoutParams = new MarginLayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         }
         layoutParams.topMargin = (int) offsetY;
+        layoutParams.leftMargin = (int) offsetX;
         tipsTextView.setLayoutParams(layoutParams);
         /*控制tips  x轴偏移*/
-        tipsTextView.setX(offsetX);
         tipsTextView.setOnTouchListener(tipsTouchListener);
         tipsTextView.setOnClickListener(new OnClickListener() {
             @Override
@@ -325,7 +315,7 @@ public class MoreTextLayout extends FrameLayout {
                     if (openTipsColor != null) {
                         tipsTextView.setTextColor(openTipsColor);
                     }
-                    noExpand();
+                    collapse();
                 }
                 /*重新测量时会自动设置展开或者收缩，所以这里不需要手动调用expand或者noExpand方法*/
                 requestLayout();
@@ -342,78 +332,79 @@ public class MoreTextLayout extends FrameLayout {
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        Log.i("=====", "====onFinishInflate=");
-        test();
+        initContentView();
     }
 
-    public void test(){
+    private void initContentView() {
         if (maxLines == 0 || TextUtils.isEmpty(text)) {
             expand = true;
             return;
         }
-        if (textView == null || textView.getParent() == null) {
+        if (textView == null) {
             textView = new AppCompatTextView(getContext());
-            if (textSize != -1) {
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
-            }
-            textView.setTextScaleX(textScaleX);
-            textView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            if (!TextUtils.isEmpty(text)) {
-                textView.setText(text);
-            }
-            if (!TextUtils.isEmpty(hint)) {
-                textView.setHint(hint);
-            }
-            if (textColor != null) {
-                textView.setTextColor(textColor);
-            }
-            textView.setHighlightColor(textColorHighlight);
-            if (textColorHint != null) {
-                textView.setHintTextColor(textColorHint);
-            }
-
-            int style = Typeface.NORMAL;
-            if (textStyle == Typeface.BOLD_ITALIC) {
-                style = Typeface.BOLD_ITALIC;
-            } else {
-                if (textStyle == Typeface.BOLD) {
-                    style = Typeface.BOLD;
-                } else if (textStyle == Typeface.ITALIC) {
-                    style = Typeface.ITALIC;
-                }
-            }
-
-            if (fontFamily != null) {
-                textView.setTypeface(fontFamily, style);
-            } else {
-                if (typeface == sans) {
-                    textView.setTypeface(Typeface.SANS_SERIF, style);
-                } else if (typeface == serif) {
-                    textView.setTypeface(Typeface.SERIF, style);
-                } else if (typeface == monospace) {
-                    textView.setTypeface(Typeface.MONOSPACE, style);
-                } else {
-                    textView.setTypeface(Typeface.DEFAULT, style);
-                }
-            }
-            if (textColorLink != null) {
-                textView.setLinkTextColor(textColorLink);
-            }
-            textView.setAllCaps(textAllCaps);
-            if (shadowColor != 0) {
-                textView.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
-            }
-            addView(textView);
-            textView.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (expand) {
-                        expand();
-                    } else {
-                        noExpand();
-                    }
-                }
-            });
         }
+        if (textSize != -1) {
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+        }
+        textView.setTextScaleX(textScaleX);
+        textView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        if (!TextUtils.isEmpty(text)) {
+            textView.setText(text);
+        }
+        if (!TextUtils.isEmpty(hint)) {
+            textView.setHint(hint);
+        }
+        if (textColor != null) {
+            textView.setTextColor(textColor);
+        }
+        textView.setHighlightColor(textColorHighlight);
+        if (textColorHint != null) {
+            textView.setHintTextColor(textColorHint);
+        }
+
+        int style = Typeface.NORMAL;
+        if (textStyle == Typeface.BOLD_ITALIC) {
+            style = Typeface.BOLD_ITALIC;
+        } else {
+            if (textStyle == Typeface.BOLD) {
+                style = Typeface.BOLD;
+            } else if (textStyle == Typeface.ITALIC) {
+                style = Typeface.ITALIC;
+            }
+        }
+
+        if (fontFamily != null) {
+            textView.setTypeface(fontFamily, style);
+        } else {
+            if (typeface == sans) {
+                textView.setTypeface(Typeface.SANS_SERIF, style);
+            } else if (typeface == serif) {
+                textView.setTypeface(Typeface.SERIF, style);
+            } else if (typeface == monospace) {
+                textView.setTypeface(Typeface.MONOSPACE, style);
+            } else {
+                textView.setTypeface(Typeface.DEFAULT, style);
+            }
+        }
+        if (textColorLink != null) {
+            textView.setLinkTextColor(textColorLink);
+        }
+        textView.setAllCaps(textAllCaps);
+        if (shadowColor != 0) {
+            textView.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
+        }
+        if (textView.getParent() == null) {
+            addView(textView);
+        }
+        textView.post(new Runnable() {
+            @Override
+            public void run() {
+                if (expand) {
+                    expand();
+                } else {
+                    collapse();
+                }
+            }
+        });
     }
 }
