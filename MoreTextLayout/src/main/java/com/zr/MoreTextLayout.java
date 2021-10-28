@@ -10,12 +10,12 @@ import android.text.Layout;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -62,7 +62,6 @@ public class MoreTextLayout extends FrameLayout {
     private AppCompatTextView textView;
 
 
-    private CharSequence fullText = "";
     private AppCompatTextView tipsTextView;
     private boolean expand = false;
 
@@ -116,13 +115,13 @@ public class MoreTextLayout extends FrameLayout {
             closeTipsColor = openTipsColor;
         }
         tipsSize = typedArray.getDimensionPixelSize(R.styleable.MoreTextLayout_tipsSize, -1);
-        tipsSpace = typedArray.getDimensionPixelOffset(R.styleable.MoreTextLayout_tipsSpace, 0);
+        tipsSpace = typedArray.getDimensionPixelSize(R.styleable.MoreTextLayout_tipsSpace, 0);
 
-        tipsXOffset = typedArray.getDimensionPixelOffset(R.styleable.MoreTextLayout_tipsXOffset, 0);
-        tipsYOffset = typedArray.getDimensionPixelOffset(R.styleable.MoreTextLayout_tipsYOffset, 0);
+        tipsXOffset = typedArray.getDimensionPixelSize(R.styleable.MoreTextLayout_tipsXOffset, 0);
+        tipsYOffset = typedArray.getDimensionPixelSize(R.styleable.MoreTextLayout_tipsYOffset, 0);
 
-        tipsLastXOffset = typedArray.getDimensionPixelOffset(R.styleable.MoreTextLayout_tipsLastXOffset, 0);
-        tipsLastYOffset = typedArray.getDimensionPixelOffset(R.styleable.MoreTextLayout_tipsLastYOffset, 0);
+        tipsLastXOffset = typedArray.getDimensionPixelSize(R.styleable.MoreTextLayout_tipsLastXOffset, 0);
+        tipsLastYOffset = typedArray.getDimensionPixelSize(R.styleable.MoreTextLayout_tipsLastYOffset, 0);
         tipsLastGravity = typedArray.getInt(R.styleable.MoreTextLayout_tipsLastGravity, 0);
         ellipsize = typedArray.getString(R.styleable.MoreTextLayout_ellipsis);
         if (TextUtils.isEmpty(ellipsize)) {
@@ -131,9 +130,7 @@ public class MoreTextLayout extends FrameLayout {
 
         maxLines = typedArray.getInteger(R.styleable.MoreTextLayout_android_maxLines, -1);
         text = typedArray.getText(R.styleable.MoreTextLayout_android_text);
-        if (!TextUtils.isEmpty(text)) {
-            fullText = text;
-        }
+
         hint = typedArray.getText(R.styleable.MoreTextLayout_android_hint);
         textColor = typedArray.getColorStateList(R.styleable.MoreTextLayout_android_textColor);
         textColorHighlight = typedArray.getColor(R.styleable.MoreTextLayout_android_textColorHighlight, 0x6633B5E5);
@@ -175,6 +172,16 @@ public class MoreTextLayout extends FrameLayout {
 
 
     public void expand() {
+        expand = true;
+        expandView();
+    }
+
+    public void collapse() {
+        expand = false;
+        collapseView();
+    }
+
+    private void expandView() {
         if (textView == null || textView.getParent() == null) {
             return;
         }
@@ -213,7 +220,7 @@ public class MoreTextLayout extends FrameLayout {
         }
     }
 
-    public void collapse() {
+    private void collapseView() {
         if (textView == null || textView.getParent() == null) {
             return;
         }
@@ -239,8 +246,8 @@ public class MoreTextLayout extends FrameLayout {
             float tipsLength = openTips.length() * tipsSize;
             while (flag) {
                 paint.getTextBounds(tempLineText, 0, tempLineText.length() - tempCount, rect);
-                /*最后一行文字+。。。+提示 长度需要小于父view宽度*/
-                if (rect.width() + tipsSpace + tipsLength > getMeasuredWidth()) {
+               /*最后一行文字+。。。+提示 长度需要小于父view宽度*/
+                if (rect.width() + tipsSpace + tipsLength+dp2px(12)> getMeasuredWidth()) {
                     tempCount += 1;
                 } else {
                     flag = false;
@@ -256,7 +263,9 @@ public class MoreTextLayout extends FrameLayout {
             removeView(tipsTextView);
         }
     }
-
+    private int dp2px(int dp){
+        return (int) (getResources().getDisplayMetrics().density*dp);
+    }
     private Rect offsetRect = new Rect();
 
     private void setTipsView(float lineRight, float lineTop, float lineBottom) {
@@ -310,12 +319,12 @@ public class MoreTextLayout extends FrameLayout {
                     if (closeTipsColor != null) {
                         tipsTextView.setTextColor(closeTipsColor);
                     }
-                    expand();
+                    expandView();
                 } else {
                     if (openTipsColor != null) {
                         tipsTextView.setTextColor(openTipsColor);
                     }
-                    collapse();
+                    collapseView();
                 }
                 /*重新测量时会自动设置展开或者收缩，所以这里不需要手动调用expand或者noExpand方法*/
                 requestLayout();
@@ -400,11 +409,241 @@ public class MoreTextLayout extends FrameLayout {
             @Override
             public void run() {
                 if (expand) {
-                    expand();
+                    expandView();
                 } else {
-                    collapse();
+                    collapseView();
                 }
             }
         });
     }
+
+    public void complete() {
+        if (expand) {
+            expandView();
+        } else {
+            collapseView();
+        }
+    }
+    //////////////////////////////////////////////////////////////////////////////////////////
+
+    public CharSequence getOpenTips() {
+        return openTips;
+    }
+
+    public void setOpenTips(CharSequence openTips) {
+        this.openTips = openTips;
+    }
+
+
+    public void setOpenTipsColor(@ColorInt int color) {
+        this.openTipsColor = ColorStateList.valueOf(color);
+    }
+
+    public CharSequence getCloseTips() {
+        return closeTips;
+    }
+
+    public void setCloseTips(CharSequence closeTips) {
+        this.closeTips = closeTips;
+    }
+
+
+    public void setCloseTipsColor(@ColorInt int color) {
+        this.closeTipsColor = ColorStateList.valueOf(color);
+    }
+
+    public float getTipsSize() {
+        return tipsSize;
+    }
+
+    public void setTipsSize(float tipsSize) {
+        this.tipsSize = tipsSize;
+    }
+
+    public float getTipsSpace() {
+        return tipsSpace;
+    }
+
+    public void setTipsSpace(float tipsSpace) {
+        this.tipsSpace = tipsSpace;
+    }
+
+    public float getTipsXOffset() {
+        return tipsXOffset;
+    }
+
+    public void setTipsXOffset(float tipsXOffset) {
+        this.tipsXOffset = tipsXOffset;
+    }
+
+    public float getTipsYOffset() {
+        return tipsYOffset;
+    }
+
+    public void setTipsYOffset(float tipsYOffset) {
+        this.tipsYOffset = tipsYOffset;
+    }
+
+    public float getTipsLastXOffset() {
+        return tipsLastXOffset;
+    }
+
+    public void setTipsLastXOffset(float tipsLastXOffset) {
+        this.tipsLastXOffset = tipsLastXOffset;
+    }
+
+    public float getTipsLastYOffset() {
+        return tipsLastYOffset;
+    }
+
+    public void setTipsLastYOffset(float tipsLastYOffset) {
+        this.tipsLastYOffset = tipsLastYOffset;
+    }
+
+    public int getTipsLastGravity() {
+        return tipsLastGravity;
+    }
+
+    public void setTipsLastGravity(int tipsLastGravity) {
+        this.tipsLastGravity = tipsLastGravity;
+    }
+
+    public String getEllipsize() {
+        return ellipsize;
+    }
+
+    public void setEllipsize(String ellipsize) {
+        this.ellipsize = ellipsize;
+    }
+
+    public int getMaxLines() {
+        return maxLines;
+    }
+
+    public void setMaxLines(int maxLines) {
+        this.maxLines = maxLines;
+    }
+
+    public CharSequence getText() {
+        return text;
+    }
+
+    public void setText(CharSequence text) {
+        this.text = text;
+    }
+
+    public CharSequence getHint() {
+        return hint;
+    }
+
+    public void setHint(CharSequence hint) {
+        this.hint = hint;
+    }
+
+
+    public void setTextColor(@ColorInt int Color) {
+        this.textColor = ColorStateList.valueOf(Color);
+    }
+
+    public int getTextColorHighlight() {
+        return textColorHighlight;
+    }
+
+    public void setTextColorHighlight(@ColorInt int textColorHighlight) {
+        this.textColorHighlight = textColorHighlight;
+    }
+
+
+    public void setTextColorHint(@ColorInt int Color) {
+        this.textColorHint = ColorStateList.valueOf(Color);
+    }
+
+    public float getTextSize() {
+        return textSize;
+    }
+
+    public void setTextSize(float textSize) {
+        this.textSize = textSize;
+    }
+
+    public float getTextScaleX() {
+        return textScaleX;
+    }
+
+    public void setTextScaleX(float textScaleX) {
+        this.textScaleX = textScaleX;
+    }
+
+    public int getTypeface() {
+        return typeface;
+    }
+
+    public void setTypeface(int typeface) {
+        this.typeface = typeface;
+    }
+
+    public int getTextStyle() {
+        return textStyle;
+    }
+
+    public void setTextStyle(int textStyle) {
+        this.textStyle = textStyle;
+    }
+
+    public Typeface getFontFamily() {
+        return fontFamily;
+    }
+
+    public void setFontFamily(Typeface fontFamily) {
+        this.fontFamily = fontFamily;
+    }
+
+    public void setTextColorLink(@ColorInt int color) {
+        this.textColorLink = ColorStateList.valueOf(color);
+    }
+
+    public boolean isTextAllCaps() {
+        return textAllCaps;
+    }
+
+    public void setTextAllCaps(boolean textAllCaps) {
+        this.textAllCaps = textAllCaps;
+    }
+
+    public int getShadowColor() {
+        return shadowColor;
+    }
+
+    public void setShadowColor(@ColorInt int shadowColor) {
+        this.shadowColor = shadowColor;
+    }
+
+    public float getShadowDx() {
+        return shadowDx;
+    }
+
+    public void setShadowDx(float shadowDx) {
+        this.shadowDx = shadowDx;
+    }
+
+    public float getShadowDy() {
+        return shadowDy;
+    }
+
+    public void setShadowDy(float shadowDy) {
+        this.shadowDy = shadowDy;
+    }
+
+    public float getShadowRadius() {
+        return shadowRadius;
+    }
+
+    public void setShadowRadius(float shadowRadius) {
+        this.shadowRadius = shadowRadius;
+    }
+
+    public boolean isExpand() {
+        return expand;
+    }
+
 }
