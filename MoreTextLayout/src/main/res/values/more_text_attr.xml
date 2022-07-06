@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <declare-styleable name="MoreTextLayout_Layout">
+
+    </declare-styleable>
     <declare-styleable name="MoreTextLayout">
+        <attr name="expand" format="boolean" />
+        <attr name="ellipsis" format="string" />
+        <attr name="tipsSpace" format="dimension" />
+
+        <attr name="tipsXOffset" format="dimension" />
+        <attr name="tipsYOffset" format="dimension" />
+        <attr name="tipsLastYOffset" format="dimension" />
+        <attr name="tipsLastXOffset" format="dimension" />
+        <attr name="tipsLastGravity" format="enum">
+            <enum name="left" value="0">left</enum>
+            <enum name="right" value="1">left</enum>
+        </attr>
+    </declare-styleable>
+    <declare-styleable name="MoreTextLayoutNew">
         <attr name="openTips" format="string" />
         <attr name="openTipsColor" format="color" />
 

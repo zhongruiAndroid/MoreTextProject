@@ -21,7 +21,13 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.AppCompatTextView;
 
-public class MoreTextLayout extends FrameLayout {
+public class MoreTextLayoutNew extends FrameLayout {
+    private CharSequence openTips = "展开";
+    private ColorStateList openTipsColor;
+    private CharSequence closeTips = "收缩";
+    private ColorStateList closeTipsColor;
+    private float tipsSize = -1;
+    private float tipsSpace = 0;
 
     private float tipsXOffset = 0;
     private float tipsYOffset = 0;
@@ -29,6 +35,29 @@ public class MoreTextLayout extends FrameLayout {
     private float tipsLastYOffset = 0;
     private int tipsLastGravity = 0;
     private String ellipsize = "";
+    private int maxLines = -1;
+    private CharSequence text;
+    private CharSequence hint;
+    private ColorStateList textColor = ColorStateList.valueOf(0xFF000000);
+    private int textColorHighlight = 0x6633B5E5;
+    private ColorStateList textColorHint;
+    private float textSize = -1;
+    private float textScaleX = 1f;
+    private int typeface = -1;
+    private int textStyle = -1;
+    //    private float textFontWeight;
+    private Typeface fontFamily;
+    private ColorStateList textColorLink;
+    private boolean textAllCaps;
+    private int shadowColor;
+    private float shadowDx;
+    private float shadowDy;
+    private float shadowRadius;
+/*    private int elegantTextHeight;
+    private int fallbackLineSpacing;
+    private int letterSpacing;
+    private String fontFeatureSettings;
+    private String fontVariationSettings;*/
 
     private AppCompatTextView textView;
 
@@ -48,23 +77,23 @@ public class MoreTextLayout extends FrameLayout {
         this.onTipsClickListener = onTipsClickListener;
     }
 
-    public MoreTextLayout(@NonNull Context context) {
+    public MoreTextLayoutNew(@NonNull Context context) {
         super(context);
         init(null);
     }
 
-    public MoreTextLayout(@NonNull Context context, @Nullable AttributeSet attrs) {
+    public MoreTextLayoutNew(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init(attrs);
     }
 
-    public MoreTextLayout(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public MoreTextLayoutNew(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(attrs);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public MoreTextLayout(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public MoreTextLayoutNew(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init(attrs);
     }
@@ -72,6 +101,21 @@ public class MoreTextLayout extends FrameLayout {
     private void init(AttributeSet attrs) {
         TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.MoreTextLayout);
 
+        openTips = typedArray.getString(R.styleable.MoreTextLayout_openTips);
+        if (TextUtils.isEmpty(openTips)) {
+            openTips = "展开";
+        }
+        openTipsColor = typedArray.getColorStateList(R.styleable.MoreTextLayout_openTipsColor);
+        closeTips = typedArray.getString(R.styleable.MoreTextLayout_closeTips);
+        if (TextUtils.isEmpty(closeTips)) {
+            closeTips = "收缩";
+        }
+        closeTipsColor = typedArray.getColorStateList(R.styleable.MoreTextLayout_closeTipsColor);
+        if (closeTipsColor == null) {
+            closeTipsColor = openTipsColor;
+        }
+        tipsSize = typedArray.getDimensionPixelSize(R.styleable.MoreTextLayout_tipsSize, -1);
+        tipsSpace = typedArray.getDimensionPixelSize(R.styleable.MoreTextLayout_tipsSpace, 0);
 
         tipsXOffset = typedArray.getDimensionPixelSize(R.styleable.MoreTextLayout_tipsXOffset, 0);
         tipsYOffset = typedArray.getDimensionPixelSize(R.styleable.MoreTextLayout_tipsYOffset, 0);
@@ -84,12 +128,47 @@ public class MoreTextLayout extends FrameLayout {
             ellipsize = "";
         }
 
+        maxLines = typedArray.getInteger(R.styleable.MoreTextLayout_android_maxLines, -1);
+        text = typedArray.getText(R.styleable.MoreTextLayout_android_text);
+
+        hint = typedArray.getText(R.styleable.MoreTextLayout_android_hint);
+        textColor = typedArray.getColorStateList(R.styleable.MoreTextLayout_android_textColor);
+        textColorHighlight = typedArray.getColor(R.styleable.MoreTextLayout_android_textColorHighlight, 0x6633B5E5);
+        textColorHint = typedArray.getColorStateList(R.styleable.MoreTextLayout_android_textColorHint);
+        textSize = typedArray.getDimensionPixelSize(R.styleable.MoreTextLayout_android_textSize, -1);
+        if (tipsSize == -1) {
+            tipsSize = textSize;
+        }
+        textScaleX = typedArray.getFloat(R.styleable.MoreTextLayout_android_textScaleX, 1f);
+        typeface = typedArray.getInt(R.styleable.MoreTextLayout_android_typeface, -1);
+        textStyle = typedArray.getInt(R.styleable.MoreTextLayout_android_textStyle, -1);
+//        textFontWeight = typedArray.getDimension(R.styleable.MoreTextLayout_android_textFontWeight, 0);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            fontFamily = typedArray.getFont(R.styleable.MoreTextLayout_android_fontFamily);
+        }
+        textColorLink = typedArray.getColorStateList(R.styleable.MoreTextLayout_android_textColorLink);
+        textAllCaps = typedArray.getBoolean(R.styleable.MoreTextLayout_android_textAllCaps, false);
+        shadowColor = typedArray.getColor(R.styleable.MoreTextLayout_android_shadowColor, 0);
+        shadowDx = typedArray.getFloat(R.styleable.MoreTextLayout_android_shadowDx, 0);
+        shadowDy = typedArray.getFloat(R.styleable.MoreTextLayout_android_shadowDy, 0);
+        shadowRadius = typedArray.getFloat(R.styleable.MoreTextLayout_android_shadowRadius, 0);
+
+       /* elegantTextHeight = typedArray.getDimension(R.styleable.MoreTextLayout_android_elegantTextHeight, 0);
+        fallbackLineSpacing = typedArray.getDimension(R.styleable.MoreTextLayout_android_fallbackLineSpacing, 0);
+        letterSpacing = typedArray.getDimension(R.styleable.MoreTextLayout_android_letterSpacing, 0);
+        fontFeatureSettings = typedArray.getDimension(R.styleable.MoreTextLayout_android_fontFeatureSettings, 0);
+        fontVariationSettings = typedArray.getDimension(R.styleable.MoreTextLayout_android_fontVariationSettings, 0);*/
+
 
         typedArray.recycle();
 
 
     }
 
+    private int normal = 0;
+    private int sans = 1;
+    private int serif = 2;
+    private int monospace = 3;
 
 
     public void expand() {
@@ -167,8 +246,8 @@ public class MoreTextLayout extends FrameLayout {
             float tipsLength = openTips.length() * tipsSize;
             while (flag) {
                 paint.getTextBounds(tempLineText, 0, tempLineText.length() - tempCount, rect);
-                /*最后一行文字+。。。+提示 长度需要小于父view宽度*/
-                if (rect.width() + tipsSpace + tipsLength + dp2px(12) > getMeasuredWidth()) {
+               /*最后一行文字+。。。+提示 长度需要小于父view宽度*/
+                if (rect.width() + tipsSpace + tipsLength+dp2px(12)> getMeasuredWidth()) {
                     tempCount += 1;
                 } else {
                     flag = false;
@@ -184,11 +263,9 @@ public class MoreTextLayout extends FrameLayout {
             removeView(tipsTextView);
         }
     }
-
-    private int dp2px(int dp) {
-        return (int) (getResources().getDisplayMetrics().density * dp);
+    private int dp2px(int dp){
+        return (int) (getResources().getDisplayMetrics().density*dp);
     }
-
     private Rect offsetRect = new Rect();
 
     private void setTipsView(float lineRight, float lineTop, float lineBottom) {
