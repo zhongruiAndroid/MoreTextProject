@@ -2,22 +2,25 @@
 <resources>
 
     <declare-styleable name="MoreTextLayout_Layout">
-
-    </declare-styleable>
-    <declare-styleable name="MoreTextLayout">
-        <attr name="expand" format="boolean" />
-        <attr name="ellipsis" format="string" />
-        <attr name="tipsSpace" format="dimension" />
-
-        <attr name="tipsXOffset" format="dimension" />
-        <attr name="tipsYOffset" format="dimension" />
-        <attr name="tipsLastYOffset" format="dimension" />
-        <attr name="tipsLastXOffset" format="dimension" />
-        <attr name="tipsLastGravity" format="enum">
-            <enum name="left" value="0">left</enum>
-            <enum name="right" value="1">left</enum>
+        <attr name="layout_type" format="integer">
+            <flag name="content" value="1" />
+            <flag name="expand" value="2" />
+            <flag name="collapse" value="3" />
         </attr>
     </declare-styleable>
+
+    <declare-styleable name="MoreTextLayout">
+        <attr name="expand" format="boolean" />
+        <attr name="minLine" format="integer" />
+        <attr name="ellipsis" format="string" />
+        <attr name="collapseTipsGravity" format="integer">
+            <flag name="left" value="0">left</flag>
+            <flag name="right" value="1">left</flag>
+        </attr>
+        <attr name="collapseTipsHidden" format="boolean" />
+        <attr name="collapseTipsNewLine" format="boolean" />
+    </declare-styleable>
+
     <declare-styleable name="MoreTextLayoutNew">
         <attr name="openTips" format="string" />
         <attr name="openTipsColor" format="color" />
@@ -27,7 +30,6 @@
 
         <attr name="tipsSize" format="dimension" />
 
-        <attr name="ellipsis" format="string" />
         <attr name="tipsSpace" format="dimension" />
         <attr name="tipsXOffset" format="dimension" />
         <attr name="tipsYOffset" format="dimension" />

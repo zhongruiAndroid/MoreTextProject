@@ -60,18 +60,18 @@ public class MainActivity extends Activity implements View.OnClickListener {
         switch (v.getId()){
             case R.id.btSetText:
 //                SimpleDialog.showDialog(this);
-                mtl.setText("在此前比亚迪海豚的预售发布会上，比亚迪就曾向媒体以及消费者介绍了海洋生物系列的产品规划。海洋系列是比亚迪在未来着重发力的产品序列，聚焦纯电汽车市场，旨在为消费者提供更时尚、更个性、更符合年轻人审美的车型选择。目前，海洋系列的首款车型——比亚迪海豚已于成都车展期间正式上市，售价区间为9.38万-12.18万元");
+//                mtl.setText("在此前比亚迪海豚的预售发布会上，比亚迪就曾向媒体以及消费者介绍了海洋生物系列的产品规划。海洋系列是比亚迪在未来着重发力的产品序列，聚焦纯电汽车市场，旨在为消费者提供更时尚、更个性、更符合年轻人审美的车型选择。目前，海洋系列的首款车型——比亚迪海豚已于成都车展期间正式上市，售价区间为9.38万-12.18万元");
             break;
             case R.id.bt1:
-                mtl.setMaxLines(1);
+//                mtl.setMaxLines(1);
             break;
             case R.id.bt2:
-                mtl.setMaxLines(2);
+//                mtl.setMaxLines(2);
                 break;
             case R.id.bt3:
-                mtl.setMaxLines(3);
+//                mtl.setMaxLines(3);
             break;
         }
-        mtl.complete();
+//        mtl.complete();
     }
 }
