@@ -24,4 +24,15 @@ public class ExampleUnitTest {
         int i = instance.get(Calendar.HOUR_OF_DAY);
         System.out.println(i);
     }
+    @Test
+    public void adsd() {
+       int a=1;
+       int b=2;
+       int d=4;
+       int aa=a=b=d=9;
+        System.out.println(aa);
+        System.out.println(a);
+        System.out.println(b);
+        System.out.println(d);
+    }
 }

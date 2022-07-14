@@ -14,8 +14,8 @@
         <attr name="minLine" format="integer" />
         <attr name="ellipsis" format="string" />
         <attr name="collapseTipsGravity" format="integer">
-            <flag name="left" value="0">left</flag>
-            <flag name="right" value="1">left</flag>
+            <flag name="right" value="0">left</flag>
+            <flag name="left" value="1">left</flag>
         </attr>
         <attr name="collapseTipsHidden" format="boolean" />
         <attr name="collapseTipsNewLine" format="boolean" />
