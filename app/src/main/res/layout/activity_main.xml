@@ -59,7 +59,7 @@
         app:collapseTipsGravity="left"
         app:collapseTipsHidden="false"
         app:collapseTipsNewLine="false"
-        app:expand="true"
+        app:expand="false"
         app:ellipsis="..."
         app:minLine="2">
 

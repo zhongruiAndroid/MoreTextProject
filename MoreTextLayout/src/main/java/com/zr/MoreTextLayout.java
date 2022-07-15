@@ -259,7 +259,7 @@ public class MoreTextLayout extends ViewGroup {
             Layout layout = textView.getLayout();
             if (layout != null) {
                 int lineCount = layout.getLineCount();
-                if (lineCount >= getMinLine()) {
+                if (lineCount > getMinLine()) {
                     int lineStart = layout.getLineStart(getMinLine() - 1);
                     int lineEnd = layout.getLineEnd(getMinLine() - 1);
 
