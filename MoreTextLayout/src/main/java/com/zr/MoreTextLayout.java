@@ -114,7 +114,6 @@ public class MoreTextLayout extends ViewGroup {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 //        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        Log.i("=====", "=====tvContentonMeasure");
         int childCount = getChildCount();
 
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
@@ -122,6 +121,7 @@ public class MoreTextLayout extends ViewGroup {
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
 
+        Log.i("=====", heightSize+"=====tvContentonMeasure");
         int paddingLeft = getPaddingLeft();
         int paddingRight = getPaddingRight();
 
@@ -157,7 +157,13 @@ public class MoreTextLayout extends ViewGroup {
                         Layout layout = textView.getLayout();
                         if (layout != null) {
                             int lineCount = layout.getLineCount();
-
+                            if (lineCount <= getMinLine()) {
+                                resultHeight = childViewMeasuredHeight;
+                            } else {
+                                textView.setMaxLines(getMinLine());
+                                textView.measure(widthMeasureSpec,heightMeasureSpec);
+                                resultHeight = lp.topMargin + lp.bottomMargin + textView.getMeasuredHeight();
+                            }
                             /*如果文本总行数小于等于需要显示的行数*/
                             /*if (lineCount <= getMinLine()) {
                                 resultHeight = childViewMeasuredHeight;
@@ -171,15 +177,16 @@ public class MoreTextLayout extends ViewGroup {
                                 return;
                             } else {
 
+
                             }*/
-                            if (lineCount > 0) {
+                            /*if (lineCount > 0) {
                                 int tempCount = Math.min(lineCount, getMinLine());
-                                /*这里少计算一行高度，是因为还要计算展开view的高度，因为这个高度包含了第minLine行高度*/
-                                int minLineHeight =( childView.getMeasuredHeight() - childView.getPaddingTop() - childView.getPaddingBottom()) * (tempCount - 0) / lineCount + lp.topMargin + lp.bottomMargin;
+                                *//*这里少计算一行高度，是因为还要计算展开view的高度，因为这个高度包含了第minLine行高度*//*
+                                int minLineHeight = (childView.getMeasuredHeight() - childView.getPaddingTop() - childView.getPaddingBottom()) * (tempCount - 0) / lineCount + lp.topMargin + lp.bottomMargin;
                                 resultHeight = resultHeight + (minLineHeight + childView.getPaddingTop() + childView.getPaddingBottom());
                                 Log.i("=====", "===3==" + minLineHeight);
 
-                            }
+                            }*/
                         }
                     }
                 }
