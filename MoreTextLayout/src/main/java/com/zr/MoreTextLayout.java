@@ -37,22 +37,13 @@ public class MoreTextLayout extends ViewGroup {
     public static final int GRAVITY_RIGHT = 0;
     public static final int GRAVITY_LEFT = 1;
 
-    private int collapseTipsGravity = 0;
+    private int collapseTipsGravity = GRAVITY_RIGHT;
     private boolean collapseTipsHidden = false;
     private boolean collapseTipsNewLine = false;
+
+
+    /*用于onlayout*/
     private boolean needCollapseTipsNewLine;
-
-    public int getMinLine() {
-        return Math.max(minLine, 1);
-    }
-
-    public int getCollapseTipsGravity() {
-        return collapseTipsGravity;
-    }
-
-    public void setCollapseTipsGravity(int collapseTipsGravity) {
-        this.collapseTipsGravity = collapseTipsGravity;
-    }
 
     public MoreTextLayout(@NonNull Context context) {
         super(context);
@@ -87,7 +78,7 @@ public class MoreTextLayout extends ViewGroup {
         collapseTipsNewLine = typedArray.getBoolean(R.styleable.MoreTextLayout_collapseTipsNewLine, false);
 
         if (TextUtils.isEmpty(ellipsize)) {
-            ellipsize = "";
+            ellipsize = "...";
         }
         typedArray.recycle();
     }
@@ -98,18 +89,38 @@ public class MoreTextLayout extends ViewGroup {
             int layoutType = ((LayoutParams) params).layoutType;
             if (layoutType == LayoutParams.TYPE_CONTENT && child instanceof TextView) {
                 textView = (TextView) child;
-                originText = textView.getText();
                 super.addView(child, index, params);
             } else if (layoutType == LayoutParams.TYPE_EXPAND) {
                 needExpandView = child;
+                needExpandView.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (isExpand()) {
+                            return;
+                        }
+                        setExpand(true);
+//                        requestLayout();
+                    }
+                });
                 super.addView(child, index, params);
             } else if (layoutType == LayoutParams.TYPE_COLLAPSE) {
                 needCollapseView = child;
+                needCollapseView.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (!isExpand()) {
+                            return;
+                        }
+                        setExpand(false);
+//                        requestLayout();
+                    }
+                });
                 super.addView(child, index, params);
             }
         }
     }
 
+    private boolean setTextFlag;
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 //        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -120,8 +131,13 @@ public class MoreTextLayout extends ViewGroup {
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-
-        Log.i("=====", heightSize+"=====tvContentonMeasure");
+        if (textView != null) {
+            if (!setTextFlag) {
+                originText=textView.getText();
+            }
+            setTextFlag=false;
+        }
+        Log.i("=====", "=====onMeasure");
         int paddingLeft = getPaddingLeft();
         int paddingRight = getPaddingRight();
 
@@ -146,9 +162,6 @@ public class MoreTextLayout extends ViewGroup {
             int layoutType = lp.layoutType;
 
             if (layoutType == LayoutParams.TYPE_CONTENT) {
-                if (childView instanceof TextView) {
-                    originText = ((TextView) childView).getText();
-                }
                 if (expand) {
                     resultHeight += childViewMeasuredHeight;
                     Log.i("=====", "===1==" + childViewMeasuredHeight);
@@ -161,7 +174,7 @@ public class MoreTextLayout extends ViewGroup {
                                 resultHeight = childViewMeasuredHeight;
                             } else {
                                 textView.setMaxLines(getMinLine());
-                                textView.measure(widthMeasureSpec,heightMeasureSpec);
+                                textView.measure(widthMeasureSpec, heightMeasureSpec);
                                 resultHeight = lp.topMargin + lp.bottomMargin + textView.getMeasuredHeight();
                             }
                             /*如果文本总行数小于等于需要显示的行数*/
@@ -211,7 +224,8 @@ public class MoreTextLayout extends ViewGroup {
                                 if (lineCount > 0) {
                                     int lineStart = layout.getLineStart(lineCount - 1);
                                     int lineEnd = layout.getLineEnd(lineCount - 1);
-
+                                    int length = originText.length();
+                                    lineEnd = Math.min(lineEnd, length);
                                     CharSequence charSequence = originText.subSequence(lineStart, lineEnd);
 
                                     Rect rect = new Rect();
@@ -251,7 +265,7 @@ public class MoreTextLayout extends ViewGroup {
                 heightMode == MeasureSpec.EXACTLY ? heightSize : resultHeight);
 
 
-        if (textView != null && !expand && !TextUtils.isEmpty(originText)) {
+        if (textView != null && !expand && !TextUtils.isEmpty(textView.getText())) {
             if (TextUtils.isEmpty(ellipsize)) {
                 ellipsize = "";
             }
@@ -262,8 +276,8 @@ public class MoreTextLayout extends ViewGroup {
                 if (lineCount > getMinLine()) {
                     int lineStart = layout.getLineStart(getMinLine() - 1);
                     int lineEnd = layout.getLineEnd(getMinLine() - 1);
-
-                    CharSequence charSequence = originText.subSequence(lineStart, lineEnd);
+                    CharSequence text = textView.getText();
+                    CharSequence charSequence = text.subSequence(lineStart, lineEnd);
 
                     Rect rect = new Rect();
                     TextPaint paint = textView.getPaint();
@@ -285,47 +299,18 @@ public class MoreTextLayout extends ViewGroup {
                             flag = false;
                         }
                     }
-                    CharSequence startText = originText.subSequence(0, lineStart);
+                    CharSequence startText = text.subSequence(0, lineStart);
                     String showText = charSequence.subSequence(0, charSequence.length() - step) + ellipsize;
                     textView.setText(startText + showText);
+                    setTextFlag=true;
                 }
             }
         }
     }
 
-
-    public void test() {
-        if (textView != null) {
-            Layout layout = textView.getLayout();
-            int lineCount = layout.getLineCount();
-            int lineStart = layout.getLineStart(lineCount - 1);
-            int lineEnd = layout.getLineEnd(lineCount - 1);
-
-            CharSequence charSequence = originText.subSequence(lineStart, lineEnd);
-
-            Rect rect = new Rect();
-            TextPaint paint = textView.getPaint();
-
-            String tempLineText = ellipsize + charSequence;
-            boolean flag = true;
-            int stepCount = 0;
-            while (flag) {
-                paint.getTextBounds(tempLineText, 0, tempLineText.length() - stepCount, rect);
-//                if (rect.width() + childViewMeasuredWidth > widthSize - paddingLeft - paddingRight) {
-//                    stepCount += 2;
-//                } else {
-//                    flag = false;
-//                }
-            }
-            String showText = originText.subSequence(0, lineEnd - stepCount) + ellipsize;
-            // TODO: 2022/7/12 是否又会触发测量
-            textView.setText(showText);
-        }
-    }
-
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        int measuredWidth = getMeasuredWidth();
+//        int measuredWidth = getMeasuredWidth();
         int paddingLeft = getPaddingLeft();
         int paddingTop = getPaddingTop();
         int paddingRight = getPaddingRight();
@@ -436,222 +421,102 @@ public class MoreTextLayout extends ViewGroup {
         }
     }
 
-
-    public void expand() {
-        expand = true;
-        expandView();
+    /***********************************************************************************************/
+    public String getEllipsize() {
+        return ellipsize;
     }
 
-    public void collapse() {
-        expand = false;
-//        collapseView();
+    public MoreTextLayout setEllipsize(String ellipsize) {
+        this.ellipsize = ellipsize;
+        return this;
     }
 
-    private void expandView() {
-        if (textView == null || textView.getParent() == null) {
-            return;
-        }
-        Layout layout = textView.getLayout();
-        int lineCount = layout.getLineCount();
-        //收缩时，如果显示行数大于设置的最大行数
-        int lineStart = layout.getLineStart(lineCount - 1);
-        int lineEnd = layout.getLineEnd(lineCount - 1);
-        float lineRight = layout.getLineRight(lineCount - 1);
-        float lineTop = layout.getLineTop(lineCount - 1);
-        float lineBottom = layout.getLineBottom(lineCount - 1);
+    public boolean isExpand() {
+        return expand;
+    }
 
-       /* CharSequence charSequence = text.subSequence(lineStart, lineEnd);
-
-        Rect rect = new Rect();
-        TextPaint paint = textView.getPaint();
-
-        int tempCount = 1;
-
-        String tempLineText = closeTips.toString() + charSequence;
-        paint.getTextBounds(tempLineText, 0, tempLineText.length() - tempCount, rect);
-        *//*如果最后一行的宽度+tips大于父view宽度*//*
-        if (rect.width() + tipsSpace > getMeasuredWidth()) {
-            //tips显示在最后一行的下一行
-            textView.setText(text);
-            if (expandTipsGravity == 0) {
-                setTipsView(0, lineTop, lineBottom, true);
-            } else {
-                setTipsView(getMeasuredWidth() - closeTips.length() * tipsSize, lineTop, lineBottom, true);
+    public MoreTextLayout setExpand(boolean expand) {
+        this.expand = expand;
+        if (expand) {
+            if (textView != null) {
+                textView.setMaxLines(Integer.MAX_VALUE);
+                textView.setText(originText);
             }
-
+            if (needExpandView != null) {
+                needExpandView.setVisibility(GONE);
+            }
+            if (needCollapseView != null) {
+                needCollapseView.setVisibility(VISIBLE);
+            }
         } else {
-            //tips显示在最后一行
-            textView.setText(text);
-            setTipsView(lineRight, lineTop, lineBottom);
-        }*/
+            if (needExpandView != null) {
+                needExpandView.setVisibility(VISIBLE);
+            }
+            if (needCollapseView != null) {
+                needCollapseView.setVisibility(GONE);
+            }
+        }
+        return this;
     }
 
-//    private void collapseView() {
-//        if (textView == null || textView.getParent() == null) {
-//            return;
-//        }
-//        Layout layout = textView.getLayout();
-//        //收缩时，如果显示行数大于设置的最大行数
-//        if (layout.getLineCount() > maxLines) {
-//            int lineStart = layout.getLineStart(maxLines - 1);
-//            int lineEnd = layout.getLineEnd(maxLines - 1);
-//            float lineRight = layout.getLineRight(maxLines - 1);
-//            float lineTop = layout.getLineTop(maxLines - 1);
-//            float lineBottom = layout.getLineBottom(maxLines - 1);
-//
-//
-//            CharSequence charSequence = text.subSequence(lineStart, lineEnd);
-//
-//            Rect rect = new Rect();
-//            TextPaint paint = textView.getPaint();
-//
-//            int tempCount = 1;
-//
-//            final String tempLineText = ellipsize + charSequence;
-//            boolean flag = true;
-//            float tipsLength = openTips.length() * tipsSize;
-//            while (flag) {
-//                paint.getTextBounds(tempLineText, 0, tempLineText.length() - tempCount, rect);
-//                /*最后一行文字+。。。+提示 长度需要小于父view宽度*/
-//                if (rect.width() + tipsSpace + tipsLength + dp2px(12) > getMeasuredWidth()) {
-//                    tempCount += 1;
-//                } else {
-//                    flag = false;
-//                }
-//            }
-//            String showText = text.subSequence(0, lineEnd - tempCount) + ellipsize;
-//            textView.setText(showText);
-//
-//
-//            setTipsView(rect.width() + tipsSpace, lineTop, lineBottom);
-//        } else {
-//            textView.setText(text);
-//            removeView(tipsTextView);
-//        }
-//    }
-
-    private int dp2px(int dp) {
-        return (int) (getResources().getDisplayMetrics().density * dp);
+    public MoreTextLayout setMinLine(int minLine) {
+        this.minLine = minLine;
+        return this;
     }
 
-    private Rect offsetRect = new Rect();
-
-    private void setTipsView(float lineRight, float lineTop, float lineBottom) {
-        setTipsView(lineRight, lineTop, lineBottom, false);
+    public boolean isCollapseTipsHidden() {
+        return collapseTipsHidden;
     }
 
-    private void setTipsView(float lineRight, float lineTop, float lineBottom, boolean showLastLine) {
-
-//        if (offsetRect != null) {
-//            offsetRect.setEmpty();
-//        }
-//
-//        float offsetX;
-//        float offsetY;
-//        if (showLastLine) {
-//            /*展开状态，显示的是closetips*/
-//            offsetX = tipsLastXOffset + lineRight;
-//            offsetY = lineBottom + tipsLastYOffset;
-//        } else {
-//            offsetX = lineRight + tipsSpace + tipsXOffset;
-//            offsetY = tipsYOffset + lineBottom + (tipsTextView.getPaint().getFontMetrics().top - tipsTextView.getPaint().getFontMetrics().bottom) + 1;
-//        }
-//        MarginLayoutParams layoutParams = (MarginLayoutParams) tipsTextView.getLayoutParams();
-//        if (layoutParams == null) {
-//            layoutParams = new MarginLayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-//        }
-//        layoutParams.topMargin = (int) offsetY;
-//        layoutParams.leftMargin = (int) offsetX;
-//        tipsTextView.setLayoutParams(layoutParams);
-
+    public MoreTextLayout setCollapseTipsHidden(boolean collapseTipsHidden) {
+        this.collapseTipsHidden = collapseTipsHidden;
+        return this;
     }
 
-    @Override
-    protected void onFinishInflate() {
-        super.onFinishInflate();
-//        initContentView();
+    public boolean isCollapseTipsNewLine() {
+        return collapseTipsNewLine;
     }
 
-//    private void initContentView() {
-//        if (maxLines == 0 || TextUtils.isEmpty(text)) {
-//            expand = true;
-//            return;
-//        }
-//        if (textView == null) {
-//            textView = new AppCompatTextView(getContext());
-//        }
-//        if (textSize != -1) {
-//            textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
-//        }
-//        textView.setTextScaleX(textScaleX);
-//        textView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-//        if (!TextUtils.isEmpty(text)) {
-//            textView.setText(text);
-//        }
-//        if (!TextUtils.isEmpty(hint)) {
-//            textView.setHint(hint);
-//        }
-//        if (textColor != null) {
-//            textView.setTextColor(textColor);
-//        }
-//        textView.setHighlightColor(textColorHighlight);
-//        if (textColorHint != null) {
-//            textView.setHintTextColor(textColorHint);
-//        }
-//
-//        int style = Typeface.NORMAL;
-//        if (textStyle == Typeface.BOLD_ITALIC) {
-//            style = Typeface.BOLD_ITALIC;
-//        } else {
-//            if (textStyle == Typeface.BOLD) {
-//                style = Typeface.BOLD;
-//            } else if (textStyle == Typeface.ITALIC) {
-//                style = Typeface.ITALIC;
-//            }
-//        }
-//
-//        if (fontFamily != null) {
-//            textView.setTypeface(fontFamily, style);
-//        } else {
-//            if (typeface == sans) {
-//                textView.setTypeface(Typeface.SANS_SERIF, style);
-//            } else if (typeface == serif) {
-//                textView.setTypeface(Typeface.SERIF, style);
-//            } else if (typeface == monospace) {
-//                textView.setTypeface(Typeface.MONOSPACE, style);
-//            } else {
-//                textView.setTypeface(Typeface.DEFAULT, style);
-//            }
-//        }
-//        if (textColorLink != null) {
-//            textView.setLinkTextColor(textColorLink);
-//        }
-//        textView.setAllCaps(textAllCaps);
-//        if (shadowColor != 0) {
-//            textView.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
-//        }
-//        if (textView.getParent() == null) {
-//            addView(textView);
-//        }
-//        textView.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                if (expand) {
-//                    expandView();
-//                } else {
-//                    collapseView();
-//                }
-//            }
-//        });
-//    }
+    public MoreTextLayout setCollapseTipsNewLine(boolean collapseTipsNewLine) {
+        this.collapseTipsNewLine = collapseTipsNewLine;
+        return this;
+    }
 
-//    public void complete() {
-//        if (expand) {
-//            expandView();
-//        } else {
-//            collapseView();
-//        }
-//    }
-    //////////////////////////////////////////////////////////////////////////////////////////
+
+    public int getMinLine() {
+        return Math.max(minLine, 1);
+    }
+
+    public int getCollapseTipsGravity() {
+        return collapseTipsGravity;
+    }
+
+    public MoreTextLayout setCollapseTipsGravity(int collapseTipsGravity) {
+        this.collapseTipsGravity = collapseTipsGravity;
+        return this;
+    }
+
+    public CharSequence getText() {
+        if (textView != null) {
+            return textView.getText();
+        }
+        return "";
+    }
+
+    public CharSequence getOriginText() {
+        if (TextUtils.isEmpty(originText)) {
+            return "";
+        }
+        return originText;
+    }
+
+    public MoreTextLayout setText(CharSequence originText) {
+        this.originText = originText;
+        if (textView != null) {
+            textView.setText(originText);
+        }
+        return this;
+    }
+    /***********************************************************************************************/
 
 }
