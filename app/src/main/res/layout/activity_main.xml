@@ -53,14 +53,15 @@
     </LinearLayout>
 
     <com.zr.MoreTextLayout
+        android:id="@+id/mtl"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorAccent"
         app:collapseTipsGravity="left"
         app:collapseTipsHidden="false"
         app:collapseTipsNewLine="false"
-        app:expand="false"
         app:ellipsis="..."
+        app:expand="false"
         app:minLine="2">
 
         <TextView
@@ -71,20 +72,20 @@
             android:paddingBottom="10dp"
             android:text="与与时与时与时与我们仍与主题关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。与主题关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。"
             android:textSize="19sp"
-            android:textStyle="bold"
             app:layout_type="content" />
 
         <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="30dp"
+            android:layout_marginRight="3dp"
+            android:layout_marginBottom="10dp"
             app:layout_type="expand">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="展开"
                 android:textSize="19sp"
-                android:layout_marginLeft="10dp"
                 android:textStyle="bold"
                 app:layout_type="expand" />
         </FrameLayout>
@@ -92,59 +93,33 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginBottom="10dp"
             android:text="收缩"
             android:textSize="19sp"
             android:textStyle="bold"
             app:layout_type="collapse" />
     </com.zr.MoreTextLayout>
 
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    >
-    <TextView
-        android:layout_width="0dp"
-        android:layout_weight="1"
-        android:layout_height="wrap_content"
-        android:lineHeight="30dp"
-        android:lineSpacingExtra="10dp"
-        android:includeFontPadding="true"
-        android:paddingTop="0dp"
-        android:paddingBottom="0dp"
-        android:text="时与时与我们仍与主题关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。与主题关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。"
-        />
     <LinearLayout
-        android:layout_width="40dp"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        >
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+
+
         <TextView
-            android:layout_width="40dp"
-            android:layout_height="30dp"
-            android:background="@color/colorAccent"
-            />
-        <TextView
-            android:layout_width="40dp"
-            android:layout_height="30dp"
-            android:background="@color/colorPrimary"
-            />
-        <TextView
-            android:layout_width="40dp"
-            android:layout_height="30dp"
-            android:background="@color/colorAccent"
-            />
-        <TextView
-            android:layout_width="40dp"
-            android:layout_height="30dp"
-            android:background="@color/colorPrimary"
-            />
+            android:id="@+id/tvTest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            android:text="时与时与我们仍与主题关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。与主题关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。时与时与我们仍与主题关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。与主题关系不大的段落可以省略获取指定字符的行号注意：计算坐标时我们仍然会用到提供的一些方法。"
+            android:textSize="15sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
-</LinearLayout>
-<TextView
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 </LinearLayout>

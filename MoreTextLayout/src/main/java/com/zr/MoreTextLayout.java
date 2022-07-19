@@ -108,6 +108,9 @@ public class MoreTextLayout extends ViewGroup {
                 needExpandView.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        if(isAnimRunning()){
+                            return;
+                        }
                         if (isExpand()) {
                             return;
                         }
@@ -121,6 +124,9 @@ public class MoreTextLayout extends ViewGroup {
                 needCollapseView.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        if(isAnimRunning()){
+                            return;
+                        }
                         if (!isExpand()) {
                             return;
                         }
@@ -396,7 +402,7 @@ public class MoreTextLayout extends ViewGroup {
 
     private ValueAnimator valueAnimator;
 
-    private void updateHeight( int animStartHeight, final int animEndHeight) {
+    private void updateHeight(int animStartHeight, final int animEndHeight) {
         Log.i("=====", animStartHeight + "==updateHeight===" + animEndHeight);
         valueAnimator = ValueAnimator.ofInt(animStartHeight, animEndHeight);
         valueAnimator.setDuration(1500);
@@ -416,6 +422,15 @@ public class MoreTextLayout extends ViewGroup {
             @Override
             public void onAnimationEnd(Animator animation) {
                 Log.i("=====", "=====onMeasureonAnimationEnd");
+                if (isExpand()) {
+                    if (needCollapseView != null) {
+                        needCollapseView.setVisibility(VISIBLE);
+                    }
+                }else{
+                    if (needExpandView != null) {
+                        needExpandView.setVisibility(VISIBLE);
+                    }
+                }
             }
         });
         valueAnimator.setInterpolator(new LinearInterpolator());
@@ -489,13 +504,23 @@ public class MoreTextLayout extends ViewGroup {
     }
 
     public MoreTextLayout setExpand(boolean expand) {
+        return setExpand(expand, useAnim);
+    }
+
+    public MoreTextLayout setExpand(boolean expand, boolean useAnim) {
         if (this.expand == expand) {
             return this;
         }
         this.expand = expand;
         if (useAnim) {
-            updateHeight(expand?useAnimMinHeight:useAnimMaxHeight, expand?useAnimMaxHeight:useAnimMinHeight);
+            /*等动画执行完毕改变view状态*/
+            updateHeight(expand ? useAnimMinHeight : useAnimMaxHeight, expand ? useAnimMaxHeight : useAnimMinHeight);
         }
+        changeViewForExpand();
+        return this;
+    }
+
+    private void changeViewForExpand() {
         if (expand) {
             if (textView != null) {
                 textView.setMaxLines(Integer.MAX_VALUE);
@@ -504,19 +529,25 @@ public class MoreTextLayout extends ViewGroup {
             if (needExpandView != null) {
                 needExpandView.setVisibility(GONE);
             }
-            if (needCollapseView != null) {
-                needCollapseView.setVisibility(VISIBLE);
+            if (!isAnimRunning()) {
+                if (needCollapseView != null) {
+                    needCollapseView.setVisibility(VISIBLE);
+                }
+            }else{
+                if (needCollapseView != null) {
+                    needCollapseView.setVisibility(GONE);
+                }
             }
         } else {
-            if (needExpandView != null) {
-                needExpandView.setVisibility(VISIBLE);
+            if (!isAnimRunning()) {
+                if (needExpandView != null) {
+                    needExpandView.setVisibility(VISIBLE);
+                }
             }
             if (needCollapseView != null) {
                 needCollapseView.setVisibility(GONE);
             }
         }
-
-        return this;
     }
 
     public MoreTextLayout setMinLine(int minLine) {
@@ -571,6 +602,9 @@ public class MoreTextLayout extends ViewGroup {
     }
 
     public MoreTextLayout setText(CharSequence originText) {
+        if(TextUtils.equals(originText,this.originText)){
+            return this;
+        }
         this.originText = originText;
         if (textView != null) {
             textView.setText(originText);
