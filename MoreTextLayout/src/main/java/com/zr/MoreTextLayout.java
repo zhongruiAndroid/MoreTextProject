@@ -49,6 +49,7 @@ public class MoreTextLayout extends ViewGroup {
 
     /*用于onlayout*/
     private boolean needCollapseTipsNewLine;
+    private int needCollapseTipsXOffset;
 
     public MoreTextLayout(@NonNull Context context) {
         super(context);
@@ -231,6 +232,7 @@ public class MoreTextLayout extends ViewGroup {
                 }
             } else if (layoutType == LayoutParams.TYPE_COLLAPSE) {
                 needCollapseTipsNewLine = false;
+                needCollapseTipsXOffset=0;
                 if (expand) {
                     /*展开时，折叠tips是否隐藏*/
                     if (collapseTipsHidden) {
@@ -261,6 +263,11 @@ public class MoreTextLayout extends ViewGroup {
                                     paint.getTextBounds(tempLineText, 0, tempLineText.length(), rect);
 
                                     alwaysNewLine = rect.width() + childViewMeasuredWidth > widthSize - paddingLeft - paddingRight;
+
+                                    if(!alwaysNewLine){
+                                        /*如果不需要换行，折叠标签居左时，计算需要左偏移量*/
+                                        needCollapseTipsXOffset=rect.width();
+                                    }
                                 }
                             }
                             if (alwaysNewLine) {
@@ -380,12 +387,21 @@ public class MoreTextLayout extends ViewGroup {
                             childView.layout(viewLeft, viewTop, viewRight, viewBottom);
                         }
                     } else {
-                        /*居右显示*/
-                        int viewRight = getMeasuredWidth() - paddingRight - layoutParams.rightMargin;
-                        int viewBottom = getMeasuredHeight() - paddingBottom - layoutParams.bottomMargin;
-                        int viewLeft = viewRight - childView.getMeasuredWidth();
-                        int viewTop = viewBottom - childView.getMeasuredHeight();
-                        childView.layout(viewLeft, viewTop, viewRight, viewBottom);
+                        if (getCollapseTipsGravity() == GRAVITY_RIGHT) {
+                            /*居右显示*/
+                            int viewRight = getMeasuredWidth() - paddingRight - layoutParams.rightMargin;
+                            int viewBottom = getMeasuredHeight() - paddingBottom - layoutParams.bottomMargin;
+                            int viewLeft = viewRight - childView.getMeasuredWidth();
+                            int viewTop = viewBottom - childView.getMeasuredHeight();
+                            childView.layout(viewLeft, viewTop, viewRight, viewBottom);
+                        }else{
+                            /*居左显示*/
+                            int viewLeft = paddingLeft + layoutParams.leftMargin+needCollapseTipsXOffset;
+                            int viewBottom = getMeasuredHeight() - paddingBottom - layoutParams.bottomMargin;
+                            int viewRight = viewLeft + childView.getMeasuredWidth();
+                            int viewTop = viewBottom - childView.getMeasuredHeight();
+                            childView.layout(viewLeft, viewTop, viewRight, viewBottom);
+                        }
                     }
                 }
             }
