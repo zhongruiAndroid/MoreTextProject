@@ -9,6 +9,7 @@ import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.zr.MoreTextLayout;
@@ -19,6 +20,8 @@ import androidx.appcompat.widget.AppCompatCheckBox;
 public class MainActivity extends Activity implements View.OnClickListener {
     private View btExpand;
     private CheckBox cbUseAnim;
+    private View btEndTips;
+    private EditText etEndTips;
     private CheckBox cbCollapseTipsNewLine;
     private CheckBox cbTipsLeft;
     private CheckBox cbTipsHidden;
@@ -43,6 +46,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mtl = findViewById(R.id.mtl);
         btExpand = findViewById(R.id.btExpand);
         btExpand.setOnClickListener(this);
+
+        btEndTips = findViewById(R.id.btEndTips);
+        btEndTips.setOnClickListener(this);
+
+        etEndTips = findViewById(R.id.etEndTips);
+        etEndTips.setText(mtl.getEllipsize());
 
         cbUseAnim = findViewById(R.id.cbUseAnim);
         cbUseAnim.setChecked(mtl.isUseAnim());
@@ -112,6 +121,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.btExpand:
                 mtl.setExpand(!mtl.isExpand());
+                break;
+            case R.id.btEndTips:
+                mtl.setEllipsize(etEndTips.getText());
                 break;
         }
     }

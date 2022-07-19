@@ -29,7 +29,7 @@ public class MoreTextLayout extends ViewGroup {
     private int useAnimMaxHeight;
     private int useAnimMinHeight;
 
-    private String ellipsize = "";
+    private CharSequence ellipsize = "";
 
     private TextView textView;
     private CharSequence originText;
@@ -256,7 +256,7 @@ public class MoreTextLayout extends ViewGroup {
                                     Rect rect = new Rect();
                                     TextPaint paint = textView.getPaint();
 
-                                    String tempLineText = ellipsize + charSequence;
+                                    String tempLineText = ellipsize +""+ charSequence;
 
                                     paint.getTextBounds(tempLineText, 0, tempLineText.length(), rect);
 
@@ -305,7 +305,7 @@ public class MoreTextLayout extends ViewGroup {
                     Rect rect = new Rect();
                     TextPaint paint = textView.getPaint();
 
-                    String tempLineText = ellipsize + charSequence;
+                    String tempLineText = ellipsize +""+ charSequence;
                     boolean flag = true;
                     int step = 0;
                     int spaceWidth = getMeasuredWidth() - paddingLeft - paddingRight;
@@ -323,7 +323,7 @@ public class MoreTextLayout extends ViewGroup {
                         }
                     }
                     CharSequence startText = text.subSequence(0, lineStart);
-                    String showText = charSequence.subSequence(0, charSequence.length() - step) + ellipsize;
+                    String showText = charSequence.subSequence(0, charSequence.length() - step) +getEllipsize().toString();
                     textView.setText(startText + showText);
                     setTextFlag = true;
                 }
@@ -484,12 +484,18 @@ public class MoreTextLayout extends ViewGroup {
     }
 
     /***********************************************************************************************/
-    public String getEllipsize() {
+    public CharSequence getEllipsize() {
+        if(TextUtils.isEmpty(ellipsize)){
+            return "";
+        }
         return ellipsize;
     }
 
-    public MoreTextLayout setEllipsize(String ellipsize) {
+    public MoreTextLayout setEllipsize(CharSequence ellipsize) {
         this.ellipsize = ellipsize;
+        if(!isExpand()){
+            requestLayoutAndNoCollectText();
+        }
         return this;
     }
 
