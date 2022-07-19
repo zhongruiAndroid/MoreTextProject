@@ -6,29 +6,26 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.os.Build;
 import android.text.Layout;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
-import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.widget.AppCompatTextView;
 
 public class MoreTextLayout extends ViewGroup {
+    private static final int def_duration=500;
 
     private TextView tempView;
-    private boolean useAnim = true;
+    private boolean useAnim = false;
+    private long animDuration;
     private int useAnimMaxHeight;
     private int useAnimMinHeight;
 
@@ -78,7 +75,9 @@ public class MoreTextLayout extends ViewGroup {
         TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.MoreTextLayout);
 
         expand = typedArray.getBoolean(R.styleable.MoreTextLayout_expand, false);
-        minLine = typedArray.getInteger(R.styleable.MoreTextLayout_minLine, 3);
+        animDuration = typedArray.getInteger(R.styleable.MoreTextLayout_animDuration,def_duration);
+        useAnim = typedArray.getBoolean(R.styleable.MoreTextLayout_useAnim, false);
+        minLine = typedArray.getInteger(R.styleable.MoreTextLayout_minLine, 2);
         ellipsize = typedArray.getString(R.styleable.MoreTextLayout_ellipsis);
 
         collapseTipsGravity = typedArray.getInt(R.styleable.MoreTextLayout_collapseTipsGravity, 0);
@@ -108,7 +107,7 @@ public class MoreTextLayout extends ViewGroup {
                 needExpandView.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if(isAnimRunning()){
+                        if (isAnimRunning()) {
                             return;
                         }
                         if (isExpand()) {
@@ -124,7 +123,7 @@ public class MoreTextLayout extends ViewGroup {
                 needCollapseView.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if(isAnimRunning()){
+                        if (isAnimRunning()) {
                             return;
                         }
                         if (!isExpand()) {
@@ -140,12 +139,14 @@ public class MoreTextLayout extends ViewGroup {
     }
 
     private boolean setTextFlag;
-
+    private void requestLayoutAndNoCollectText(){
+        setTextFlag=true;
+        requestLayout();
+    }
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 //        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        Log.i("=====", "=====onMeasure");
         int childCount = getChildCount();
 
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
@@ -172,15 +173,13 @@ public class MoreTextLayout extends ViewGroup {
                 Layout layout = textView.getLayout();
                 int lineCount = getMinLine();
                 if (layout != null) {
-                    lineCount = Math.min(lineCount, layout.getLineCount());
+//                    lineCount = Math.min(lineCount, layout.getLineCount());
                 }
                 tempView.setMaxLines(lineCount);
                 measureChildWithMargins(tempView, widthMeasureSpec, 0, heightMeasureSpec, 0);
 
                 useAnimMinHeight = tempView.getMeasuredHeight() + tempViewLayoutParams.topMargin + tempViewLayoutParams.bottomMargin;
 
-                Log.i("=====", "=====childViewMeasuredHeight1=" + useAnimMinHeight);
-                Log.i("=====", "=====childViewMeasuredHeight2=" + useAnimMaxHeight);
             }
 
         }
@@ -210,7 +209,6 @@ public class MoreTextLayout extends ViewGroup {
             if (layoutType == LayoutParams.TYPE_CONTENT) {
                 if (expand) {
                     resultHeight += childViewMeasuredHeight;
-                    Log.i("=====", "===1==" + childViewMeasuredHeight);
                 } else {
                     if (isAnimRunning()) {
                         resultHeight = childViewMeasuredHeight;
@@ -219,13 +217,14 @@ public class MoreTextLayout extends ViewGroup {
                             Layout layout = textView.getLayout();
                             if (layout != null) {
                                 int lineCount = layout.getLineCount();
-                                if (lineCount <= getMinLine()) {
-                                    resultHeight = childViewMeasuredHeight;
-                                } else {
+//                                if (lineCount <= getMinLine()) {
+//                                    resultHeight = childViewMeasuredHeight;
+//                                } else {
+                                    textView.setText(originText);
                                     textView.setMaxLines(getMinLine());
                                     textView.measure(widthMeasureSpec, heightMeasureSpec);
                                     resultHeight = lp.topMargin + lp.bottomMargin + textView.getMeasuredHeight();
-                                }
+//                                }
                             }
                         }
                     }
@@ -241,7 +240,6 @@ public class MoreTextLayout extends ViewGroup {
                         if (collapseTipsNewLine) {
                             needCollapseTipsNewLine = true;
                             resultHeight += childViewMeasuredHeight;
-                            Log.i("=====", "===4==" + childViewMeasuredHeight);
                         } else {
                             /*如果不设置换行，计算文字内容剩余空间是否不需要换行*/
                             boolean alwaysNewLine = false;
@@ -268,7 +266,6 @@ public class MoreTextLayout extends ViewGroup {
                             if (alwaysNewLine) {
                                 needCollapseTipsNewLine = true;
                                 resultHeight += childViewMeasuredHeight;
-                                Log.i("=====", "===5==" + childViewMeasuredHeight);
                             } else {
 
                             }
@@ -286,7 +283,6 @@ public class MoreTextLayout extends ViewGroup {
 
         resultWidth = resultWidth + paddingLeft + paddingRight;
         resultHeight = resultHeight + getPaddingTop() + getPaddingBottom();
-        Log.i("=====", heightSize + "=====" + resultHeight + "========" + (heightMode == MeasureSpec.EXACTLY ? heightSize : resultHeight));
         setMeasuredDimension(
                 widthMode == MeasureSpec.EXACTLY ? widthSize : resultWidth,
                 heightMode == MeasureSpec.EXACTLY ? heightSize : resultHeight);
@@ -403,9 +399,8 @@ public class MoreTextLayout extends ViewGroup {
     private ValueAnimator valueAnimator;
 
     private void updateHeight(int animStartHeight, final int animEndHeight) {
-        Log.i("=====", animStartHeight + "==updateHeight===" + animEndHeight);
         valueAnimator = ValueAnimator.ofInt(animStartHeight, animEndHeight);
-        valueAnimator.setDuration(1500);
+        valueAnimator.setDuration(getAnimDuration());
         valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
@@ -421,12 +416,11 @@ public class MoreTextLayout extends ViewGroup {
         valueAnimator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                Log.i("=====", "=====onMeasureonAnimationEnd");
                 if (isExpand()) {
                     if (needCollapseView != null) {
                         needCollapseView.setVisibility(VISIBLE);
                     }
-                }else{
+                } else {
                     if (needExpandView != null) {
                         needExpandView.setVisibility(VISIBLE);
                     }
@@ -499,6 +493,25 @@ public class MoreTextLayout extends ViewGroup {
         return this;
     }
 
+    public boolean isUseAnim() {
+        return useAnim;
+    }
+
+    public void setUseAnim(boolean useAnim) {
+        this.useAnim = useAnim;
+    }
+
+    public long getAnimDuration() {
+        if(animDuration<=0){
+            animDuration=def_duration;
+        }
+        return animDuration;
+    }
+
+    public void setAnimDuration(long animDuration) {
+        this.animDuration = animDuration;
+    }
+
     public boolean isExpand() {
         return expand;
     }
@@ -533,7 +546,7 @@ public class MoreTextLayout extends ViewGroup {
                 if (needCollapseView != null) {
                     needCollapseView.setVisibility(VISIBLE);
                 }
-            }else{
+            } else {
                 if (needCollapseView != null) {
                     needCollapseView.setVisibility(GONE);
                 }
@@ -552,6 +565,7 @@ public class MoreTextLayout extends ViewGroup {
 
     public MoreTextLayout setMinLine(int minLine) {
         this.minLine = minLine;
+        requestLayoutAndNoCollectText();
         return this;
     }
 
@@ -561,6 +575,7 @@ public class MoreTextLayout extends ViewGroup {
 
     public MoreTextLayout setCollapseTipsHidden(boolean collapseTipsHidden) {
         this.collapseTipsHidden = collapseTipsHidden;
+        requestLayoutAndNoCollectText();
         return this;
     }
 
@@ -570,6 +585,7 @@ public class MoreTextLayout extends ViewGroup {
 
     public MoreTextLayout setCollapseTipsNewLine(boolean collapseTipsNewLine) {
         this.collapseTipsNewLine = collapseTipsNewLine;
+        requestLayoutAndNoCollectText();
         return this;
     }
 
@@ -584,6 +600,7 @@ public class MoreTextLayout extends ViewGroup {
 
     public MoreTextLayout setCollapseTipsGravity(int collapseTipsGravity) {
         this.collapseTipsGravity = collapseTipsGravity;
+        requestLayoutAndNoCollectText();
         return this;
     }
 
@@ -602,7 +619,7 @@ public class MoreTextLayout extends ViewGroup {
     }
 
     public MoreTextLayout setText(CharSequence originText) {
-        if(TextUtils.equals(originText,this.originText)){
+        if (TextUtils.equals(originText, this.originText)) {
             return this;
         }
         this.originText = originText;

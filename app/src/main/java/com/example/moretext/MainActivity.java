@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
@@ -16,7 +17,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatCheckBox;
 
 public class MainActivity extends Activity implements View.OnClickListener {
-    private AppCompatCheckBox cb;
+    private View btExpand;
+    private CheckBox cbUseAnim;
+    private CheckBox cbCollapseTipsNewLine;
+    private CheckBox cbTipsLeft;
+    private CheckBox cbTipsHidden;
     private Button btSetText;
     private Button bt1;
     private Button bt2;
@@ -36,15 +41,41 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private void initView() {
         mtl = findViewById(R.id.mtl);
-        cb = (AppCompatCheckBox) findViewById(R.id.cb);
-        cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        btExpand = findViewById(R.id.btExpand);
+        btExpand.setOnClickListener(this);
+
+        cbUseAnim = findViewById(R.id.cbUseAnim);
+        cbUseAnim.setChecked(mtl.isUseAnim());
+        cbUseAnim.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-//                    mtl.expand ();
-                } else {
-//                    mtl.collapse ();
-                }
+                mtl.setUseAnim(isChecked);
+            }
+        });
+
+        cbCollapseTipsNewLine = findViewById(R.id.cbCollapseTipsNewLine);
+        cbCollapseTipsNewLine.setChecked(mtl.isCollapseTipsNewLine());
+        cbCollapseTipsNewLine.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mtl.setCollapseTipsNewLine(isChecked);
+            }
+        });
+
+        cbTipsLeft = findViewById(R.id.cbTipsLeft);
+        cbTipsLeft.setChecked(mtl.getCollapseTipsGravity()==MoreTextLayout.GRAVITY_LEFT);
+        cbTipsLeft.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mtl.setCollapseTipsGravity(isChecked?MoreTextLayout.GRAVITY_LEFT:MoreTextLayout.GRAVITY_RIGHT);
+            }
+        });
+        cbTipsHidden = findViewById(R.id.cbTipsHidden);
+        cbTipsHidden.setChecked(mtl.isCollapseTipsHidden());
+        cbTipsHidden.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mtl.setCollapseTipsHidden(isChecked);
             }
         });
         btSetText = (Button) findViewById(R.id.btSetText);
@@ -68,26 +99,20 @@ public class MainActivity extends Activity implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btSetText:
-                mtl.setText("在此前比亚迪海豚的预售发布会上，比亚迪就曾向媒体以及消费者介绍了海洋生物系列的产品规划。海洋系列是比亚迪在未来着重发力的产品序列，聚焦纯电汽车市场，旨在为消费者提供更时尚、更个性、更符合年轻人审美的车型选择。目前，海洋系列的首款车型——比亚迪海豚已于成都车展期间正式上市，售价区间为9.38万-12.18万元");
-//                SimpleDialog.showDialog(this);
-//                mtl.setText("在此前比亚迪海豚的预售发布会上，比亚迪就曾向媒体以及消费者介绍了海洋生物系列的产品规划。海洋系列是比亚迪在未来着重发力的产品序列，聚焦纯电汽车市场，旨在为消费者提供更时尚、更个性、更符合年轻人审美的车型选择。目前，海洋系列的首款车型——比亚迪海豚已于成都车展期间正式上市，售价区间为9.38万-12.18万元");
+                mtl.setText("中国发展网讯 据央视新闻消息，中国小伙王嘉男跳出8.36米逆转夺冠，为中国田径摘得世锦赛跳远首金。他用帅到飞起的一跳，将摘金之梦变为现实。这份突破的背后，是坚守，是热爱。我们的掌声不仅要送给运动员，也要送给每一个为了梦想全力奔跑的中国人！中国队加油，咱们巴黎见！");
                 break;
             case R.id.bt1:
-//                mtl.setMaxLines(1);
+                mtl.setMinLine(1);
                 break;
             case R.id.bt2:
-//                mtl.setMaxLines(2);
+                mtl.setMinLine(2);
                 break;
             case R.id.bt3:
-//                mtl.setMaxLines(3);
+                mtl.setMinLine(3);
                 break;
-            case R.id.tvContent:
-                Log.i("=====","=====tvContent1");
-//                mtl.setMaxLines(3);
-                tvContent.setText("在此前比亚迪海豚的预售发布会上，比亚迪就曾向媒体以及消费者介绍了海洋生物系列的产品规划。海洋系列是比亚迪在未来着重发力的产品序列，聚焦纯电汽车市场，旨在为消费者提供更时尚、更个性、更符合年轻人审美的车型选择。目前，海洋系列的首款车型——比亚迪海豚已于成都车展期间正式上市，售价区间为9.38万-12.18万元");
-                Log.i("=====","=====tvContent2");
+            case R.id.btExpand:
+                mtl.setExpand(!mtl.isExpand());
                 break;
         }
-//        mtl.complete();
     }
 }
