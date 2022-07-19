@@ -1,5 +1,8 @@
 package com.zr;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
@@ -13,6 +16,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -23,6 +27,10 @@ import androidx.appcompat.widget.AppCompatTextView;
 
 public class MoreTextLayout extends ViewGroup {
 
+    private TextView tempView;
+    private boolean useAnim = true;
+    private int useAnimMaxHeight;
+    private int useAnimMinHeight;
 
     private String ellipsize = "";
 
@@ -81,6 +89,11 @@ public class MoreTextLayout extends ViewGroup {
             ellipsize = "...";
         }
         typedArray.recycle();
+
+
+        if (tempView == null) {
+            tempView = new TextView(getContext());
+        }
     }
 
     @Override
@@ -121,10 +134,12 @@ public class MoreTextLayout extends ViewGroup {
     }
 
     private boolean setTextFlag;
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 //        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
+        Log.i("=====", "=====onMeasure");
         int childCount = getChildCount();
 
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
@@ -132,12 +147,37 @@ public class MoreTextLayout extends ViewGroup {
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         if (textView != null) {
-            if (!setTextFlag) {
-                originText=textView.getText();
+            if (!setTextFlag && !isAnimRunning()) {
+                originText = textView.getText();
             }
-            setTextFlag=false;
+            setTextFlag = false;
+
+
+            if (!isAnimRunning()) {
+                /*计算最高和最低高度,用于执行动画*/
+                tempView = MoreTextLayoutUtils.measureContentView(tempView, textView);
+                tempView.setText(originText);
+                tempView.setMaxLines(Integer.MAX_VALUE);
+                measureChildWithMargins(tempView, widthMeasureSpec, 0, heightMeasureSpec, 0);
+
+                MarginLayoutParams tempViewLayoutParams = (MarginLayoutParams) tempView.getLayoutParams();
+                useAnimMaxHeight = tempView.getMeasuredHeight() + tempViewLayoutParams.topMargin + tempViewLayoutParams.bottomMargin;
+
+                Layout layout = textView.getLayout();
+                int lineCount = getMinLine();
+                if (layout != null) {
+                    lineCount = Math.min(lineCount, layout.getLineCount());
+                }
+                tempView.setMaxLines(lineCount);
+                measureChildWithMargins(tempView, widthMeasureSpec, 0, heightMeasureSpec, 0);
+
+                useAnimMinHeight = tempView.getMeasuredHeight() + tempViewLayoutParams.topMargin + tempViewLayoutParams.bottomMargin;
+
+                Log.i("=====", "=====childViewMeasuredHeight1=" + useAnimMinHeight);
+                Log.i("=====", "=====childViewMeasuredHeight2=" + useAnimMaxHeight);
+            }
+
         }
-        Log.i("=====", "=====onMeasure");
         int paddingLeft = getPaddingLeft();
         int paddingRight = getPaddingRight();
 
@@ -166,40 +206,21 @@ public class MoreTextLayout extends ViewGroup {
                     resultHeight += childViewMeasuredHeight;
                     Log.i("=====", "===1==" + childViewMeasuredHeight);
                 } else {
-                    if (textView != null) {
-                        Layout layout = textView.getLayout();
-                        if (layout != null) {
-                            int lineCount = layout.getLineCount();
-                            if (lineCount <= getMinLine()) {
-                                resultHeight = childViewMeasuredHeight;
-                            } else {
-                                textView.setMaxLines(getMinLine());
-                                textView.measure(widthMeasureSpec, heightMeasureSpec);
-                                resultHeight = lp.topMargin + lp.bottomMargin + textView.getMeasuredHeight();
+                    if (isAnimRunning()) {
+                        resultHeight = childViewMeasuredHeight;
+                    } else {
+                        if (textView != null) {
+                            Layout layout = textView.getLayout();
+                            if (layout != null) {
+                                int lineCount = layout.getLineCount();
+                                if (lineCount <= getMinLine()) {
+                                    resultHeight = childViewMeasuredHeight;
+                                } else {
+                                    textView.setMaxLines(getMinLine());
+                                    textView.measure(widthMeasureSpec, heightMeasureSpec);
+                                    resultHeight = lp.topMargin + lp.bottomMargin + textView.getMeasuredHeight();
+                                }
                             }
-                            /*如果文本总行数小于等于需要显示的行数*/
-                            /*if (lineCount <= getMinLine()) {
-                                resultHeight = childViewMeasuredHeight;
-                                Log.i("=====","===2=="+childViewMeasuredHeight);
-                                resultWidth = resultWidth + paddingLeft + paddingRight;
-                                resultHeight = resultHeight + getPaddingTop() + getPaddingBottom();
-                                Log.i("=====",heightSize+"====="+resultHeight+"========"+(heightMode == MeasureSpec.EXACTLY ? heightSize : resultHeight));
-                                setMeasuredDimension(
-                                        widthMode == MeasureSpec.EXACTLY ? widthSize : resultWidth,
-                                        heightMode == MeasureSpec.EXACTLY ? heightSize : resultHeight);
-                                return;
-                            } else {
-
-
-                            }*/
-                            /*if (lineCount > 0) {
-                                int tempCount = Math.min(lineCount, getMinLine());
-                                *//*这里少计算一行高度，是因为还要计算展开view的高度，因为这个高度包含了第minLine行高度*//*
-                                int minLineHeight = (childView.getMeasuredHeight() - childView.getPaddingTop() - childView.getPaddingBottom()) * (tempCount - 0) / lineCount + lp.topMargin + lp.bottomMargin;
-                                resultHeight = resultHeight + (minLineHeight + childView.getPaddingTop() + childView.getPaddingBottom());
-                                Log.i("=====", "===3==" + minLineHeight);
-
-                            }*/
                         }
                     }
                 }
@@ -265,7 +286,7 @@ public class MoreTextLayout extends ViewGroup {
                 heightMode == MeasureSpec.EXACTLY ? heightSize : resultHeight);
 
 
-        if (textView != null && !expand && !TextUtils.isEmpty(textView.getText())) {
+        if (!isAnimRunning() && textView != null && !expand && !TextUtils.isEmpty(textView.getText())) {
             if (TextUtils.isEmpty(ellipsize)) {
                 ellipsize = "";
             }
@@ -302,7 +323,7 @@ public class MoreTextLayout extends ViewGroup {
                     CharSequence startText = text.subSequence(0, lineStart);
                     String showText = charSequence.subSequence(0, charSequence.length() - step) + ellipsize;
                     textView.setText(startText + showText);
-                    setTextFlag=true;
+                    setTextFlag = true;
                 }
             }
         }
@@ -367,6 +388,38 @@ public class MoreTextLayout extends ViewGroup {
                 }
             }
         }
+    }
+
+    private boolean isAnimRunning() {
+        return valueAnimator != null && valueAnimator.isRunning();
+    }
+
+    private ValueAnimator valueAnimator;
+
+    private void updateHeight( int animStartHeight, final int animEndHeight) {
+        Log.i("=====", animStartHeight + "==updateHeight===" + animEndHeight);
+        valueAnimator = ValueAnimator.ofInt(animStartHeight, animEndHeight);
+        valueAnimator.setDuration(1500);
+        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                if (textView == null) {
+                    return;
+                }
+                ViewGroup.LayoutParams layoutParams = textView.getLayoutParams();
+                layoutParams.height = (int) animation.getAnimatedValue();
+                textView.setLayoutParams(layoutParams);
+
+            }
+        });
+        valueAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                Log.i("=====", "=====onMeasureonAnimationEnd");
+            }
+        });
+        valueAnimator.setInterpolator(new LinearInterpolator());
+        valueAnimator.start();
     }
 
     @Override
@@ -436,7 +489,13 @@ public class MoreTextLayout extends ViewGroup {
     }
 
     public MoreTextLayout setExpand(boolean expand) {
+        if (this.expand == expand) {
+            return this;
+        }
         this.expand = expand;
+        if (useAnim) {
+            updateHeight(expand?useAnimMinHeight:useAnimMaxHeight, expand?useAnimMaxHeight:useAnimMinHeight);
+        }
         if (expand) {
             if (textView != null) {
                 textView.setMaxLines(Integer.MAX_VALUE);
@@ -456,6 +515,7 @@ public class MoreTextLayout extends ViewGroup {
                 needCollapseView.setVisibility(GONE);
             }
         }
+
         return this;
     }
 
